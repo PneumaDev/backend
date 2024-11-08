@@ -5,10 +5,12 @@ import productModel from "../models/productModel.js";
 const addProduct = async (req, res) => {
     try {
         const { name, description, price, category, subCategory, sizes, bestseller } = req.body;
-        const image1 = req.files.image1[0];
-        const image2 = req.files.image2[0];
-        const image3 = req.files.image3[0];
-        const image4 = req.files.image4[0];
+        console.log(req.files);
+        // Check if `req.files` exists and safely access each image
+        const image1 = req.files?.image1 ? req.files.image1[0] : undefined;
+        const image2 = req.files?.image2 ? req.files.image2[0] : undefined;
+        const image3 = req.files?.image3 ? req.files.image3[0] : undefined;
+        const image4 = req.files?.image4 ? req.files.image4[0] : undefined;
 
         const images = [image1, image2, image3, image4].filter(image => image !== undefined);
 
