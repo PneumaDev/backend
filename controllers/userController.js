@@ -9,7 +9,29 @@ const createToken = (id) => {
 }
 
 // <--------- Route for user login ---------->
-const loginUser = async (req, res) => { }
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await userModel.findOne({ email });
+        if (!user) { return res.json({ success: false, message: "User doesn't exist" }) }
+
+        const isMatch = await bycrypt.compare(password, user.password)
+
+        if (isMatch) {
+            const token = createToken(user.id)
+            res.json({ success: true, message: "login successfull!", token })
+        }
+
+        else {
+            res.json({ success: false, message: "Password incorrect!" })
+        }
+
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message })
+    }
+}
 
 
 // <---------- Route for register user ---------->
