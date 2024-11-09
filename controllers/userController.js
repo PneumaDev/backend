@@ -19,12 +19,13 @@ const loginUser = async (req, res) => {
         const isMatch = await bycrypt.compare(password, user.password)
 
         if (isMatch) {
+
             const token = createToken(user.id)
-            res.json({ success: true, message: "login successfull!", token })
+            res.json({ success: true, message: "Login Successfull!", token })
         }
 
         else {
-            res.json({ success: false, message: "Password incorrect!" })
+            res.json({ success: false, message: "Incorrect Credentials!" })
         }
 
     } catch (error) {
@@ -38,9 +39,8 @@ const loginUser = async (req, res) => {
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        console.log(password);
-        // checking if user already exists
 
+        // checking if user already exists
         const exists = await userModel.findOne({ email });
         if (exists) { return res.json({ success: false, message: "User already exists!" }) }
 
