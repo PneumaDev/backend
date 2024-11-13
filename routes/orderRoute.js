@@ -15,7 +15,7 @@ orderRouter.post("/stripe", authUser, placeOrderStripe)
 orderRouter.post("/mpesa", authUser, placeOrderMpesa)
 
 // <----------User Feautures----------->
-orderRouter.post("/usersorders", authUser, userOrders)
+orderRouter.post("/userorders", authUser, userOrders)
 
 
 export default orderRouter;
