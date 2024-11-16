@@ -1,5 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import { stkPushRequest } from "daraja-kit";
 
 
 // <--------------Placing Order Using COD method-------------->
@@ -37,7 +38,33 @@ const placeOrderStripe = async () => {
 }
 
 // <---------------Placing Order Using Mpesa--------------->
-const placeOrderMpesa = async () => {
+const placeOrderMpesa = async (req, res) => {
+    const { userId, items, amount, address } = req.body;
+
+
+    try {
+        let phoneNumber = address.phone;
+        if (phoneNumber.startsWith('07') || phoneNumber.startsWith('01')) {
+            phoneNumber = '254' + phoneNumber.slice(1);
+        } else if (phoneNumber.startsWith('254')) {
+            phoneNumber = phoneNumber;
+        } else {
+            throw new Error('Invalid phone number');
+        }
+
+        const reqParams = {
+            phoneNumber,
+            amount,
+            callbackURL: "https://webhook.site/d087c2f6-efb9-4e10-9348-d2f1369f56d1",
+            transactionDesc: "Payment for: " + items.length,
+            accountReference: address.email
+        };
+        const response = await stkPushRequest(reqParams);
+        console.log("STK Push Request Successful:", response);
+    } catch (error) {
+
+        console.log(error);
+    }
 
 }
 
