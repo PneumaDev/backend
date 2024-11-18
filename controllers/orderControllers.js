@@ -43,6 +43,7 @@ const placeOrderStripe = async () => {
 const placeOrderMpesa = async (req, res) => {
     const { userId, items, amount, address } = req.body;
 
+
     try {
         // Validate required fields
         if (!userId || !items || !amount || !address) {
@@ -59,7 +60,7 @@ const placeOrderMpesa = async (req, res) => {
         const response = await daraja.stkPush({
             sender_phone: address.phone,
             payBillOrTillNumber: '174379',
-            amount: amount,
+            amount: amount.toString(),
             callback_url: 'https://webhook.site/3f906d0a-28ea-4194-bad3-3fa7914978cf',
         });
 
