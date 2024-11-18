@@ -66,43 +66,43 @@ const placeOrderMpesa = async (req, res) => {
         console.log('Safaricom response: ', response);
 
         // Prepare transaction data
-        const paymentData = {
-            name: `${address.firstName} ${address.lastName}`,
-            email: address.email,
-            userId,
-            amount,
-            paymentMethod: 'mpesa',
-            items,
-            status: 'pending',
-            transactionDetails: response,
-        };
+        // const paymentData = {
+        //     name: `${address.firstName} ${address.lastName}`,
+        //     email: address.email,
+        //     userId,
+        //     amount,
+        //     paymentMethod: 'mpesa',
+        //     items,
+        //     status: 'pending',
+        //     transactionDetails: response,
+        // };
 
-        console.log(`Transaction amount: ${amount}`);
+        // console.log(`Transaction amount: ${amount}`);
 
-        const newTransaction = new Transaction(paymentData);
-        const savedTransaction = await newTransaction.save();
+        // const newTransaction = new Transaction(paymentData);
+        // const savedTransaction = await newTransaction.save();
 
-        // Prepare order data with linked transactionId
-        const orderData = {
-            userId,
-            address,
-            items,
-            amount,
-            paymentMethod: 'mpesa',
-            payment: false,
-            date: Date.now(),
-            transactionId: savedTransaction._id, // Link transaction ID to order
-        };
+        // // Prepare order data with linked transactionId
+        // const orderData = {
+        //     userId,
+        //     address,
+        //     items,
+        //     amount,
+        //     paymentMethod: 'mpesa',
+        //     payment: false,
+        //     date: Date.now(),
+        //     transactionId: savedTransaction._id,
+        // };
 
-        const newOrder = new orderModel(orderData);
-        const savedOrder = await newOrder.save();
+        // const newOrder = new orderModel(orderData);
+        // const savedOrder = await newOrder.save();
 
-        // Update transaction with orderId
-        savedTransaction.orderId = savedOrder._id;
-        await savedTransaction.save();
+        // // Update transaction with orderId
+        // savedTransaction.orderId = savedOrder._id;
+        // await savedTransaction.save();
 
 
-        await userModel.findByIdAndUpdate(userId, { cartData: {} })
+        // await userModel.findByIdAndUpdate(userId, { cartData: {} })
 
 
         // Respond with success
