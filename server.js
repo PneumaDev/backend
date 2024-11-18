@@ -19,7 +19,7 @@ app.use(express.json())
 
 // Allow specific origin
 app.use(cors({
-    origin: ['https://eridanusmall.vercel.app', 'http://localhost:5173'] // Specify multiple origins in an array
+    origin: ['https://eridanusmall.vercel.app', 'http://localhost:5173']
 }));
 
 

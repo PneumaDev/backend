@@ -1,7 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import Transaction from "../models/transactionModel.js";
 import userModel from "../models/userModel.js";
-import { stkPushRequest } from "daraja-kit";
 import Daraja from "@saverious/daraja";
 
 
@@ -61,49 +60,48 @@ const placeOrderMpesa = async (req, res) => {
             sender_phone: address.phone,
             payBillOrTillNumber: '174379',
             amount: amount.toString(),
-            callback_url: 'https://webhook.site/3f906d0a-28ea-4194-bad3-3fa7914978cf',
+            callback_url: 'https://webhook.site/337b0719-cc49-4b66-9fd6-3afdf46e06ac',
         });
 
         console.log('Safaricom response: ', response);
 
         // Prepare transaction data
-        // const paymentData = {
-        //     name: `${address.firstName} ${address.lastName}`,
-        //     email: address.email,
-        //     userId,
-        //     amount,
-        //     paymentMethod: 'mpesa',
-        //     items,
-        //     status: 'pending',
-        //     transactionDetails: response,
-        // };
-
-        // console.log(`Transaction amount: ${amount}`);
-
-        // const newTransaction = new Transaction(paymentData);
-        // const savedTransaction = await newTransaction.save();
-
-        // // Prepare order data with linked transactionId
-        // const orderData = {
-        //     userId,
-        //     address,
-        //     items,
-        //     amount,
-        //     paymentMethod: 'mpesa',
-        //     payment: false,
-        //     date: Date.now(),
-        //     transactionId: savedTransaction._id,
-        // };
-
-        // const newOrder = new orderModel(orderData);
-        // const savedOrder = await newOrder.save();
-
-        // // Update transaction with orderId
-        // savedTransaction.orderId = savedOrder._id;
-        // await savedTransaction.save();
+        const paymentData = {
+            name: `${address.firstName} ${address.lastName}`,
+            email: address.email,
+            userId,
+            amount,
+            paymentMethod: 'mpesa',
+            items,
+            status: 'pending',
+            transactionDetails: response,
+        };
 
 
-        // await userModel.findByIdAndUpdate(userId, { cartData: {} })
+        const newTransaction = new Transaction(paymentData);
+        const savedTransaction = await newTransaction.save();
+
+        // Prepare order data with linked transactionId
+        const orderData = {
+            userId,
+            address,
+            items,
+            amount,
+            paymentMethod: 'mpesa',
+            payment: false,
+            date: Date.now(),
+            transactionId: savedTransaction._id,
+        };
+
+        const newOrder = new orderModel(orderData);
+        const savedOrder = await newOrder.save();
+
+        // Update transaction with orderId
+        savedTransaction.orderId = savedOrder._id;
+        await savedTransaction.save();
+
+
+        await userModel.findByIdAndUpdate(userId, { cartData: {} })
 
 
         // Respond with success
