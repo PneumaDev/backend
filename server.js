@@ -16,7 +16,8 @@ connectCloudinary()
 
 // Middlewares
 app.use(express.json())
-app.use(cors())
+// Allow specific origin
+app.use(cors({ origin: 'https://eridanusmall.vercel.app' }));
 
 // api endpoints
 app.use('/api/user', userRouter)
