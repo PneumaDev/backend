@@ -11,21 +11,26 @@ const createToken = (id) => {
 // <--------- Route for user login ---------->
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, isGoogleAuthenticated } = req.body;
 
         const user = await userModel.findOne({ email });
         if (!user) { return res.json({ success: false, message: "User doesn't exist" }) }
 
-        const isMatch = await bycrypt.compare(password, user.password)
 
-        if (isMatch) {
+        if (!isGoogleAuthenticated) {
+            const isMatch = await bycrypt.compare(password, user.password)
 
+            if (isMatch) {
+
+                const token = createToken(user.id)
+                res.json({ success: true, message: "Login Successfull!", token })
+            } else {
+                res.json({ success: false, message: "Incorrect Credentials!" })
+            }
+        }
+        else {
             const token = createToken(user.id)
             res.json({ success: true, message: "Login Successfull!", token })
-        }
-
-        else {
-            res.json({ success: false, message: "Incorrect Credentials!" })
         }
 
     } catch (error) {
