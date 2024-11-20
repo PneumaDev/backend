@@ -2,6 +2,7 @@ import userModel from "../models/userModel.js";
 import validator from "validator";
 import bycrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import uniqid from 'uniqid'
 
 
 const createToken = (id) => {
@@ -11,13 +12,11 @@ const createToken = (id) => {
 // <--------- Route for user login ---------->
 const loginUser = async (req, res) => {
     try {
-        const { email, password, isGoogleAuthenticated } = req.body;
-
-        const user = await userModel.findOne({ email });
-        if (!user) { return res.json({ success: false, message: "User doesn't exist" }) }
-
+        const { email, password, isGoogleAuthenticated, name } = req.body;
 
         if (!isGoogleAuthenticated) {
+            const user = await userModel.findOne({ email });
+            if (!user) { return res.json({ success: false, message: "User doesn't exist" }) }
             const isMatch = await bycrypt.compare(password, user.password)
 
             if (isMatch) {
@@ -29,8 +28,26 @@ const loginUser = async (req, res) => {
             }
         }
         else {
-            const token = createToken(user.id)
-            res.json({ success: true, message: "Login Successfull!", token })
+            if (!validator.isEmail(email)) { return res.json({ success: false, message: "Please enter a valid email!" }) }
+            const user = await userModel.findOne({ email });
+            if (user) {
+                const token = createToken(user.id)
+                res.json({ success: true, message: "Login Successfull!", token })
+            }
+            else {
+                const salt = await bycrypt.genSalt(10);
+                const hashedPassword = await bycrypt.hash(email + uniqid(), salt)
+
+                const newUser = new userModel({
+                    name, email, password: hashedPassword
+                })
+
+                const user = await newUser.save()
+
+                const token = createToken(user._id)
+
+                res.json({ success: true, message: "User Created", token })
+            }
         }
 
     } catch (error) {
