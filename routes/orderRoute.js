@@ -1,5 +1,5 @@
 import express from "express";
-import { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook } from "../controllers/orderControllers.js";
+import { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder } from "../controllers/orderControllers.js";
 import adminAuth from './../middleware/adminAuth.js';
 import authUser from './../middleware/auth.js';
 
@@ -17,6 +17,7 @@ orderRouter.post("/mpesa-webhook", authUser, mpesaWebhook)
 
 // <----------User Feautures----------->
 orderRouter.post("/userorders", authUser, userOrders)
+orderRouter.post("/cancelorder", authUser, cancelOrder)
 
 
 export default orderRouter;
