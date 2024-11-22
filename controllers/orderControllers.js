@@ -120,29 +120,16 @@ const placeOrderMpesa = async (req, res) => {
 // <--------------Cancel Order----------------->
 const cancelOrder = async (req, res) => {
     try {
-        const { userId, itemId } = req.body;
+        const { orderId } = req.body; // Ensure orderId is passed correctly
 
-        // Find the order for the specified user
-        const order = await orderModel.findOne({ userId, "items._id": itemId });
+        // Delete the order by its ID
+        const deletedOrder = await orderModel.findByIdAndDelete(orderId);
 
-        if (!order) {
-            return res.status(404).json({ success: false, message: "Order or Item not found" });
+        if (!deletedOrder) {
+            return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        console.log(order, size);
-        // Filter out the item with the given itemId
-        order.items = order.items.filter(item => item._id.toString() !== itemId && item.size == size);
-
-        // If no items are left in the order, you can optionally delete the order
-        if (order.items.length === 0) {
-            await orderModel.deleteOne({ _id: order._id });
-            return res.json({ success: true, message: "Order deleted as no items remain" });
-        }
-
-        // Save the updated order
-        await order.save();
-
-        res.json({ success: true, message: "Item removed from the order", order });
+        res.json({ success: true, message: "Order removed successfully" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: error.message });
