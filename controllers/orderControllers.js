@@ -120,7 +120,7 @@ const placeOrderMpesa = async (req, res) => {
 // <--------------Cancel Order----------------->
 const cancelOrder = async (req, res) => {
     try {
-        const { userId, itemId, size } = req.body;
+        const { userId, itemId } = req.body;
 
         // Find the order for the specified user
         const order = await orderModel.findOne({ userId, "items._id": itemId });
