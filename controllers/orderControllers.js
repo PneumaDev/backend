@@ -124,21 +124,18 @@ const cancelOrder = async (req, res) => {
         // Find the order by its ID
         const order = await orderModel.findById(orderId);
 
-        console.log(order);
-
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        if (!order.payment && order.status !== "Pending") {
+        if (!order.payment && order.status === "Pending") {
             // Delete the order by its ID
             await orderModel.findByIdAndDelete(orderId);
-
             return res.json({ success: true, message: "Order removed successfully" });
         }
 
         // If the order cannot be deleted
-        return res.json({ success: true, message: "Order already processed. Please reload." });
+        return res.json({ success: true, message: "Order already processed. Reloading...", status: 500 });
 
     } catch (error) {
         console.error(error);
