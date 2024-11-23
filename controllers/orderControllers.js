@@ -116,25 +116,37 @@ const placeOrderMpesa = async (req, res) => {
     }
 };
 
-
 // <--------------Cancel Order----------------->
 const cancelOrder = async (req, res) => {
     try {
-        const { orderId } = req.body; // Ensure orderId is passed correctly
+        const { orderId } = req.body;
 
-        // Delete the order by its ID
-        const deletedOrder = await orderModel.findByIdAndDelete(orderId);
+        // Find the order by its ID
+        const order = await orderModel.findById(orderId);
 
-        if (!deletedOrder) {
+        console.log(order);
+
+        if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        res.json({ success: true, message: "Order removed successfully" });
+        if (!order.payment && order.status !== "Pending") {
+            // Delete the order by its ID
+            await orderModel.findByIdAndDelete(orderId);
+
+            return res.json({ success: true, message: "Order removed successfully" });
+        }
+
+        // If the order cannot be deleted
+        return res.json({ success: true, message: "Order already processed. Please reload." });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+
 
 
 
