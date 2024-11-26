@@ -4,7 +4,7 @@ import productModel from "../models/productModel.js";
 // <-------- Function to add product --------->
 const addProduct = async (req, res) => {
     try {
-        const { name, description, price, category, subCategory, sizes, bestSeller } = req.body;
+        const { name, isOriginal, averageWeight, quantity, description, price, category, subCategory, bestSeller, sizes, sku, brand, discount, tags } = req.body;
         // Check if `req.files` exists and safely access each image
         const image1 = req.files?.image1 ? req.files.image1[0] : undefined;
         const image2 = req.files?.image2 ? req.files.image2[0] : undefined;
@@ -22,8 +22,15 @@ const addProduct = async (req, res) => {
 
         const productData = {
             name,
+            averageWeight,
+            quantity,
+            sku,
+            brand,
+            discount,
+            tags: JSON.parse(tags),
             description,
             category,
+            isOriginal,
             price: Number(price),
             subCategory,
             bestSeller: bestSeller === "true" ? true : false,
@@ -44,18 +51,22 @@ const addProduct = async (req, res) => {
     }
 }
 
-// <-------- Function to add product --------->
+// <-------- Function to list product --------->
 const listProduct = async (req, res) => {
     try {
-        const products = await productModel.find({})
-        res.json({ success: true, products })
+        // Specify only the fields to retrieve
+        const products = await productModel.find({}).select('name description price image bestSeller sizes');
+
+        // Send the response with the selected fields
+        res.json({ success: true, products });
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
 }
 
-// <-------- Function to add product --------->
+
+// <-------- Function to remove product --------->
 const removeProduct = async (req, res) => {
     try {
 
@@ -68,7 +79,7 @@ const removeProduct = async (req, res) => {
     }
 }
 
-// <-------- Function to add product --------->
+// <-------- Function to get single product info --------->
 const singleProductInfo = async (req, res) => {
     try {
         const { productId } = req.body
