@@ -4,6 +4,7 @@ const orderSchema = new mongoose.Schema({
     transactionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
     userId: { type: String, required: true },
     items: { type: Array, required: true },
+    checkoutRequestId: { type: String, unique: true, required: true },
     amount: { type: Number, required: true },
     address: { type: Object, required: true },
     status: { type: String, required: true, default: "Pending" },

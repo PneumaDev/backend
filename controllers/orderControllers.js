@@ -2,6 +2,26 @@ import orderModel from "../models/orderModel.js";
 import Transaction from "../models/transactionModel.js";
 import userModel from "../models/userModel.js";
 import Daraja from "@saverious/daraja";
+import { Mpesa } from "daraja.js"
+
+const app = new Mpesa({
+    consumerKey: process.env.MPESA_CONSUMER_KEY,
+    consumerSecret: process.env.MPESA_CONSUMER_SECRET,
+    initiatorPassword: "Safaricom999!*!",
+    organizationShortCode: 174379,
+    // certificatePath: "some/path", // optional
+    // securityCredential: "someSecureCredential"
+})
+
+const initiateStkPush = async (amount, phoneNumber) => {
+    return await app
+        .stkPush()
+        .amount(amount)
+        .callbackURL("https://webhook.site/ceb463f0-ac4c-4976-b3e6-b4193dd1141b")
+        .phoneNumber(phoneNumber)
+        .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
+        .send();
+}
 
 
 // <--------------Placing Order Using COD method-------------->
@@ -42,79 +62,108 @@ const placeOrderStripe = async () => {
 const placeOrderMpesa = async (req, res) => {
     const { userId, items, amount, address } = req.body;
 
-
     try {
         // Validate required fields
-        if (!userId || !items || !amount || !address) {
-            throw new Error('Missing required fields: userId, items, amount, or address');
+        if (!userId) throw new Error("Missing required field: userId");
+        if (!items || items.length === 0) throw new Error("Cart items cannot be empty");
+        if (!amount || amount <= 0) throw new Error("Invalid amount");
+        if (!address || !address.phone || !address.firstName || !address.lastName) {
+            throw new Error("Missing or incomplete address details");
         }
 
-        // Prepare STK Push request parameters
-        const daraja = new Daraja({
-            consumer_key: process.env.MPESA_CONSUMER_KEY,
-            consumer_secret: process.env.MPESA_CONSUMER_SECRET,
-            environment: 'development',
-        });
+        // Validate and format the phone number
+        const phone = address.phone.trim();
+        if (phone.startsWith("07") || phone.startsWith("01")) {
+            address.phone = `254${phone.slice(1)}`;
+        } else if (!phone.startsWith("254") || phone.length !== 12) {
+            throw new Error("Invalid phone number format");
+        }
 
-        const response = await daraja.stkPush({
-            sender_phone: address.phone,
-            payBillOrTillNumber: '174379',
-            amount: amount.toString(),
-            callback_url: 'https://webhook.site/337b0719-cc49-4b66-9fd6-3afdf46e06ac',
-        });
+        // Initiate MPesa STK Push
+        const mpesaResponse = await initiateStkPush(amount, address.phone)
 
-        console.log('Safaricom response: ', response);
+        if (!mpesaResponse.isOkay()) {
+            throw new Error("Transaction not processed");
+        }
 
-        // Prepare transaction data
-        const paymentData = {
-            name: `${address.firstName} ${address.lastName}`,
-            email: address.email,
-            userId,
-            amount,
-            paymentMethod: 'mpesa',
-            items,
-            status: 'pending',
-            transactionDetails: response,
-        };
+        console.log("Safaricom response: ", mpesaResponse.data.CheckoutRequestID);
 
+        const checkoutRequestId = mpesaResponse.data.CheckoutRequestID
 
-        const newTransaction = new Transaction(paymentData);
-        const savedTransaction = await newTransaction.save();
+        // // Prepare transaction data
+        // const paymentData = {
+        //     name: `${address.firstName} ${address.lastName}`,
+        //     email: address.email || null,
+        //     userId,
+        //     amount,
+        //     paymentMethod: "mpesa",
+        //     items,
+        //     status: "pending",
+        //     transactionDetails: mpesaResponse,
+        // };
 
-        // Prepare order data with linked transactionId
+        // // Save the transaction in the database
+        // const newTransaction = new Transaction(paymentData);
+        // const savedTransaction = await newTransaction.save();
+
+        // Prepare order data
         const orderData = {
             userId,
             address,
             items,
             amount,
-            paymentMethod: 'mpesa',
+            paymentMethod: "mpesa",
             payment: false,
             date: Date.now(),
-            transactionId: savedTransaction._id,
+            checkoutRequestId,
         };
 
+        // Save the order in the database
         const newOrder = new orderModel(orderData);
         const savedOrder = await newOrder.save();
 
-        // Update transaction with orderId
-        savedTransaction.orderId = savedOrder._id;
-        await savedTransaction.save();
+        // // Link order to transaction
+        // savedTransaction.orderId = savedOrder._id;
+        // await savedTransaction.save();
 
-
-        await userModel.findByIdAndUpdate(userId, { cartData: {} })
-
+        // Clear user cart
+        // await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
         // Respond with success
-        res.json({
+        return res.status(200).json({
             success: true,
-            message: response.ResponseDescription,
-            response,
+            message: mpesaResponse.ResponseDescription || "Payment initiated successfully",
+            // transactionId: savedTransaction._id,
+            orderId: savedOrder._id,
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error in placeOrderMpesa:", error.message);
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+
+// <--------------Complete Added Orders Payment-------------->
+const completePayment = async (req, res) => {
+    const { orderId, checkoutRequestId } = req.body;
+
+    const response = await app
+        .stkPush()
+        .shortCode("174379")
+        .checkoutRequestID(checkoutRequestId)
+        .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
+        .queryStatus(); //
+
+
+    console.log(response);
+    // Proceed to get the order if there's an orderId
+    if (orderId) {
+        const order = await orderModel.findById(orderId)
+    }
+
+    // First Confirm The Order hasn't been paid yet
+}
+
 
 // <--------------Cancel Order----------------->
 const cancelOrder = async (req, res) => {
@@ -216,4 +265,4 @@ const updateStatus = async (req, res) => {
 
 }
 
-export { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder }
+export { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, completePayment }
