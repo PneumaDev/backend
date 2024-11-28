@@ -14,11 +14,12 @@ orderRouter.post("/place", authUser, placeOrder)
 orderRouter.post("/stripe", authUser, placeOrderStripe)
 orderRouter.post("/mpesa", authUser, placeOrderMpesa)
 orderRouter.post("/mpesa-webhook", authUser, mpesaWebhook)
+orderRouter.post("/confirmpayment", authUser, completePayment)
+
 
 // <----------User Feautures----------->
 orderRouter.post("/userorders", authUser, userOrders)
 orderRouter.post("/cancelorder", authUser, cancelOrder)
-orderRouter.post("/confirmpayment", authUser, completePayment)
 
 
 export default orderRouter;
