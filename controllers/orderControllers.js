@@ -90,7 +90,7 @@ const placeOrderMpesa = async (req, res) => {
 
         const checkoutRequestId = mpesaResponse.data.CheckoutRequestID
 
-        // // Prepare transaction data
+        // Prepare transaction data
         // const paymentData = {
         //     name: `${address.firstName} ${address.lastName}`,
         //     email: address.email || null,
