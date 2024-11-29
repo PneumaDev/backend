@@ -2,12 +2,16 @@ import mongoose from "mongoose";
 
 const connectDb = async () => {
 
-    mongoose.connection.on("connected", async () => {
-        console.log("Connected to database😎");
-    })
+    try {
+        mongoose.connection.on("connected", async () => {
+            console.log("Connected to database😎");
+        })
 
-    await mongoose.connect(`${process.env.MONGODB_URI}/eridanus-mall`);
+        await mongoose.connect(`${process.env.MONGODB_URI}/eridanus-mall`);
 
+    } catch (error) {
+        console.log(error.message);
+    }
 }
 
 
