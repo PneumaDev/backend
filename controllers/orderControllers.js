@@ -194,7 +194,7 @@ const cancelOrder = async (req, res) => {
         return res.json({ success: true, message: "Order already processed. Reloading...", status: 500 });
 
     } catch (error) {
-        console.error(error);
+        console.error(error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
