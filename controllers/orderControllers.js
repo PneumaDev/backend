@@ -88,7 +88,7 @@ const placeOrderMpesa = async (req, res) => {
 
         console.log("Safaricom response: ", mpesaResponse.data.CheckoutRequestID);
 
-        const checkoutRequestId = mpesaResponse.data.CheckoutRequestID
+        const checkoutRequestId = await mpesaResponse.data.CheckoutRequestID
 
         // Prepare transaction data
         // const paymentData = {
@@ -135,6 +135,7 @@ const placeOrderMpesa = async (req, res) => {
             message: mpesaResponse.ResponseDescription || "Payment initiated successfully",
             // transactionId: savedTransaction._id,
             orderId: savedOrder._id,
+            checkoutId: checkoutRequestId,
         });
     } catch (error) {
         console.error("Error in placeOrderMpesa:", error.message);
@@ -145,23 +146,29 @@ const placeOrderMpesa = async (req, res) => {
 
 // <--------------Complete Added Orders Payment-------------->
 const completePayment = async (req, res) => {
-    const { orderId, checkoutRequestId } = req.body;
+    try {
+        const { orderId, checkout_id } = req.body;
 
-    const response = await app
-        .stkPush()
-        .shortCode("174379")
-        .checkoutRequestID(checkoutRequestId)
-        .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
-        .queryStatus(); //
+        console.log(req.body);
+
+        const response = await app
+            .stkPush()
+            .shortCode("174379")
+            .checkoutRequestID(checkout_id)
+            .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
+            .queryStatus(); //
 
 
-    console.log(response);
-    // Proceed to get the order if there's an orderId
-    if (orderId) {
-        const order = await orderModel.findById(orderId)
+        console.log(response.data.ResultCode);
+        // // Proceed to get the order if there's an orderId
+        // if (orderId) {
+        //     const order = await orderModel.findById(orderId)
+        // }
+
+        // First Confirm The Order hasn't been paid yet
+    } catch (error) {
+        console.log(error.message);
     }
-
-    // First Confirm The Order hasn't been paid yet
 }
 
 
