@@ -98,22 +98,6 @@ const placeOrderMpesa = async (req, res) => {
 
         const checkoutRequestId = await mpesaResponse.data.CheckoutRequestID
 
-        // Prepare transaction data
-        // const paymentData = {
-        //     name: `${address.firstName} ${address.lastName}`,
-        //     email: address.email || null,
-        //     userId,
-        //     amount,
-        //     paymentMethod: "mpesa",
-        //     items,
-        //     status: "pending",
-        //     transactionDetails: mpesaResponse,
-        // };
-
-        // // Save the transaction in the database
-        // const newTransaction = new Transaction(paymentData);
-        // const savedTransaction = await newTransaction.save();
-
         // Prepare order data
         const orderData = {
             userId,
@@ -129,10 +113,6 @@ const placeOrderMpesa = async (req, res) => {
         // Save the order in the database
         const newOrder = new orderModel(orderData);
         const savedOrder = await newOrder.save();
-
-        // // Link order to transaction
-        // savedTransaction.orderId = savedOrder._id;
-        // await savedTransaction.save();
 
         // Clear user cart
         // await userModel.findByIdAndUpdate(userId, { cartData: {} });
@@ -155,13 +135,11 @@ const placeOrderMpesa = async (req, res) => {
 // <--------------Complete Added Orders Payment-------------->
 const confirmPayment = async (req, res) => {
     try {
-        const { orderId, checkout_id, retryPurchase } = req.body;
-
-        console.log(checkout_id);
+        const { orderId, checkout_id, retryPurchase, amount, phoneNumber } = req.body;
 
         const response = await verifyPayment(checkout_id);
 
-        console.log(response.data.ResultCode);
+        console.log(response.data);
 
         if (response.data.ResultCode === 0) {
             // Proceed to get the order if there's an orderId
@@ -172,6 +150,8 @@ const confirmPayment = async (req, res) => {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
             }
         } else {
+
+            // Retry Purchase if order payment still pending.
             if (retryPurchase && orderId) {
                 const stkResponse = await initiateStkPush(amount, phoneNumber);
                 const checkout_id = stkResponse.data.CheckoutRequestID;
@@ -179,24 +159,24 @@ const confirmPayment = async (req, res) => {
                 // Introduce a delay before verifying payment
                 await delay(5000);
 
-                const verificationResponse = await verifyPayment(checkout_id);
+                const verificationResponse = (await verifyPayment(checkout_id)).isOkay();
 
-                if (verificationResponse.data.ResultCode === 0) {
+                if (verificationResponse) {
                     await orderModel.findByIdAndUpdate(orderId, {
                         checkoutId: stkResponse.data.CheckoutRequestID,
                         payment: true
                     });
                     return res.json({ success: true, message: "Payment Successful after Retry" });
                 } else {
-                    return res.json({ success: false, message: "Retry Payment Failed" });
+                    return res.json({ success: false, message: "Payment Retry Unsuccessful" });
                 }
             } else {
-                return res.json({ success: false, message: "Payment Verification Failed" });
+                return res.json({ success: false, message: response.data.ResultDesc });
             }
         }
     } catch (error) {
         console.log(error.message);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+        return res.json({ success: false, message: "Error Verifying Payment -- ETIMEDOUT" });
     }
 };
 
