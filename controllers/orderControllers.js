@@ -1,7 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import Transaction from "../models/transactionModel.js";
 import userModel from "../models/userModel.js";
-import Daraja from "@saverious/daraja";
 import { Mpesa } from "daraja.js"
 
 const app = new Mpesa({
@@ -9,8 +8,6 @@ const app = new Mpesa({
     consumerSecret: process.env.MPESA_CONSUMER_SECRET,
     initiatorPassword: "Safaricom999!*!",
     organizationShortCode: 174379,
-    // certificatePath: "some/path", // optional
-    // securityCredential: "someSecureCredential"
 })
 
 const initiateStkPush = async (amount, phoneNumber) => {
@@ -22,6 +19,17 @@ const initiateStkPush = async (amount, phoneNumber) => {
         .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
         .send();
 }
+
+const verifyPayment = async (checkout_id) => {
+    return await app
+        .stkPush()
+        .shortCode("174379")
+        .checkoutRequestID(checkout_id)
+        .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
+        .queryStatus()
+}
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 // <--------------Placing Order Using COD method-------------->
@@ -145,31 +153,52 @@ const placeOrderMpesa = async (req, res) => {
 
 
 // <--------------Complete Added Orders Payment-------------->
-const completePayment = async (req, res) => {
+const confirmPayment = async (req, res) => {
     try {
-        const { orderId, checkout_id } = req.body;
+        const { orderId, checkout_id, retryPurchase } = req.body;
 
-        console.log(req.body);
+        console.log(checkout_id);
 
-        const response = await app
-            .stkPush()
-            .shortCode("174379")
-            .checkoutRequestID(checkout_id)
-            .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
-            .queryStatus(); //
-
+        const response = await verifyPayment(checkout_id);
 
         console.log(response.data.ResultCode);
-        // // Proceed to get the order if there's an orderId
-        // if (orderId) {
-        //     const order = await orderModel.findById(orderId)
-        // }
 
-        // First Confirm The Order hasn't been paid yet
+        if (response.data.ResultCode === 0) {
+            // Proceed to get the order if there's an orderId
+            if (orderId) {
+                await orderModel.findByIdAndUpdate(orderId, { payment: true });
+                return res.json({ success: true, message: "Payment Successful" });
+            } else {
+                return res.json({ success: false, message: "No Order ID. Please Reload" });
+            }
+        } else {
+            if (retryPurchase && orderId) {
+                const stkResponse = await initiateStkPush(amount, phoneNumber);
+                const checkout_id = stkResponse.data.CheckoutRequestID;
+
+                // Introduce a delay before verifying payment
+                await delay(5000);
+
+                const verificationResponse = await verifyPayment(checkout_id);
+
+                if (verificationResponse.data.ResultCode === 0) {
+                    await orderModel.findByIdAndUpdate(orderId, {
+                        checkoutId: stkResponse.data.CheckoutRequestID,
+                        payment: true
+                    });
+                    return res.json({ success: true, message: "Payment Successful after Retry" });
+                } else {
+                    return res.json({ success: false, message: "Retry Payment Failed" });
+                }
+            } else {
+                return res.json({ success: false, message: "Payment Verification Failed" });
+            }
+        }
     } catch (error) {
         console.log(error.message);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
 
 // <--------------Cancel Order----------------->
@@ -191,7 +220,7 @@ const cancelOrder = async (req, res) => {
         }
 
         // If the order cannot be deleted
-        return res.json({ success: true, message: "Order already processed. Reloading...", status: 500 });
+        return res.json({ success: true, message: "Order already processed.", status: 500 });
 
     } catch (error) {
         console.error(error.message);
@@ -272,4 +301,4 @@ const updateStatus = async (req, res) => {
 
 }
 
-export { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, completePayment }
+export { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment }
