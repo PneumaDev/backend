@@ -3,6 +3,8 @@ import Transaction from "../models/transactionModel.js";
 import userModel from "../models/userModel.js";
 import { Mpesa } from "daraja.js"
 
+
+
 const app = new Mpesa({
     consumerKey: process.env.MPESA_CONSUMER_KEY,
     consumerSecret: process.env.MPESA_CONSUMER_SECRET,
@@ -12,7 +14,7 @@ const app = new Mpesa({
 
 const initiateStkPush = async (amount, phoneNumber) => {
     return await app
-        .stkPush()
+        .stkPush().description("Order")
         .amount(amount)
         .callbackURL("https://webhook.site/ceb463f0-ac4c-4976-b3e6-b4193dd1141b")
         .phoneNumber(phoneNumber)
@@ -56,15 +58,10 @@ const placeOrder = async (req, res) => {
         res.json({ success: true, message: "Order Placed!" })
 
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
 
     }
-}
-
-// <--------------Placing Order Using Stripe-------------->
-const placeOrderStripe = async () => {
-
 }
 
 const placeOrderMpesa = async (req, res) => {
@@ -171,7 +168,7 @@ const confirmPayment = async (req, res) => {
                     return res.json({ success: false, message: "Payment Retry Unsuccessful" });
                 }
             } else {
-                return res.json({ success: false, message: response.data.ResultDesc });
+                return res.json({ success: false, message: response.data.ResultDesc || "STK Push not sent!" });
             }
         }
     } catch (error) {
@@ -208,11 +205,6 @@ const cancelOrder = async (req, res) => {
     }
 };
 
-
-
-
-
-
 // <--------------Mpesa webhook----------------->
 const mpesaWebhook = async (req, res) => {
     const { stkCallback } = req.body.Body;
@@ -235,7 +227,7 @@ const mpesaWebhook = async (req, res) => {
 
         res.status(200).send("OK");
     } catch (error) {
-        console.error("Error updating transaction:", error);
+        console.error("Error updating transaction:", error.message);
         res.status(500).send("Server Error");
     }
 }
@@ -248,7 +240,7 @@ const allOrders = async (req, res) => {
 
     }
     catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
     }
 }
@@ -262,7 +254,7 @@ const userOrders = async (req, res) => {
         res.json({ success: true, orders })
 
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
     }
 
@@ -275,10 +267,10 @@ const updateStatus = async (req, res) => {
         await orderModel.findByIdAndUpdate(orderId, { status })
         res.json({ success: true, message: "Status Updated" })
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
     }
 
 }
 
-export { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment }
+export { placeOrder, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment }
