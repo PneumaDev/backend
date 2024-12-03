@@ -1,27 +1,37 @@
 import orderModel from "../models/orderModel.js";
 import Transaction from "../models/transactionModel.js";
 import userModel from "../models/userModel.js";
-import Daraja from "@saverious/daraja";
 import { Mpesa } from "daraja.js"
+
+
 
 const app = new Mpesa({
     consumerKey: process.env.MPESA_CONSUMER_KEY,
     consumerSecret: process.env.MPESA_CONSUMER_SECRET,
     initiatorPassword: "Safaricom999!*!",
     organizationShortCode: 174379,
-    // certificatePath: "some/path", // optional
-    // securityCredential: "someSecureCredential"
 })
 
 const initiateStkPush = async (amount, phoneNumber) => {
     return await app
-        .stkPush()
+        .stkPush().description("Order")
         .amount(amount)
         .callbackURL("https://webhook.site/ceb463f0-ac4c-4976-b3e6-b4193dd1141b")
         .phoneNumber(phoneNumber)
         .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
         .send();
 }
+
+const verifyPayment = async (checkout_id) => {
+    return await app
+        .stkPush()
+        .shortCode("174379")
+        .checkoutRequestID(checkout_id)
+        .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
+        .queryStatus()
+}
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 // <--------------Placing Order Using COD method-------------->
@@ -48,15 +58,10 @@ const placeOrder = async (req, res) => {
         res.json({ success: true, message: "Order Placed!" })
 
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
 
     }
-}
-
-// <--------------Placing Order Using Stripe-------------->
-const placeOrderStripe = async () => {
-
 }
 
 const placeOrderMpesa = async (req, res) => {
@@ -90,22 +95,6 @@ const placeOrderMpesa = async (req, res) => {
 
         const checkoutRequestId = await mpesaResponse.data.CheckoutRequestID
 
-        // Prepare transaction data
-        // const paymentData = {
-        //     name: `${address.firstName} ${address.lastName}`,
-        //     email: address.email || null,
-        //     userId,
-        //     amount,
-        //     paymentMethod: "mpesa",
-        //     items,
-        //     status: "pending",
-        //     transactionDetails: mpesaResponse,
-        // };
-
-        // // Save the transaction in the database
-        // const newTransaction = new Transaction(paymentData);
-        // const savedTransaction = await newTransaction.save();
-
         // Prepare order data
         const orderData = {
             userId,
@@ -121,10 +110,6 @@ const placeOrderMpesa = async (req, res) => {
         // Save the order in the database
         const newOrder = new orderModel(orderData);
         const savedOrder = await newOrder.save();
-
-        // // Link order to transaction
-        // savedTransaction.orderId = savedOrder._id;
-        // await savedTransaction.save();
 
         // Clear user cart
         // await userModel.findByIdAndUpdate(userId, { cartData: {} });
@@ -145,31 +130,52 @@ const placeOrderMpesa = async (req, res) => {
 
 
 // <--------------Complete Added Orders Payment-------------->
-const completePayment = async (req, res) => {
+const confirmPayment = async (req, res) => {
     try {
-        const { orderId, checkout_id } = req.body;
+        const { orderId, checkout_id, retryPurchase, amount, phoneNumber } = req.body;
 
-        console.log(req.body);
+        const response = await verifyPayment(checkout_id);
 
-        const response = await app
-            .stkPush()
-            .shortCode("174379")
-            .checkoutRequestID(checkout_id)
-            .lipaNaMpesaPassKey(process.env.MPESA_API_PASSKEY)
-            .queryStatus(); //
+        console.log(response.data);
 
+        if (response.data.ResultCode === 0) {
+            // Proceed to get the order if there's an orderId
+            if (orderId) {
+                await orderModel.findByIdAndUpdate(orderId, { payment: true });
+                return res.json({ success: true, message: "Payment Successful" });
+            } else {
+                return res.json({ success: false, message: "No Order ID. Please Reload" });
+            }
+        } else {
 
-        console.log(response.data.ResultCode);
-        // // Proceed to get the order if there's an orderId
-        // if (orderId) {
-        //     const order = await orderModel.findById(orderId)
-        // }
+            // Retry Purchase if order payment still pending.
+            if (retryPurchase && orderId) {
+                const stkResponse = await initiateStkPush(amount, phoneNumber);
+                const checkout_id = stkResponse.data.CheckoutRequestID;
 
-        // First Confirm The Order hasn't been paid yet
+                // Introduce a delay before verifying payment
+                await delay(5000);
+
+                const verificationResponse = (await verifyPayment(checkout_id)).isOkay();
+
+                if (verificationResponse) {
+                    await orderModel.findByIdAndUpdate(orderId, {
+                        checkoutId: stkResponse.data.CheckoutRequestID,
+                        payment: true
+                    });
+                    return res.json({ success: true, message: "Payment Successful after Retry" });
+                } else {
+                    return res.json({ success: false, message: "Payment Retry Unsuccessful" });
+                }
+            } else {
+                return res.json({ success: false, message: response.data.ResultDesc || "STK Push not sent!" });
+            }
+        }
     } catch (error) {
         console.log(error.message);
+        return res.json({ success: false, message: "Error Verifying Payment -- ETIMEDOUT" });
     }
-}
+};
 
 
 // <--------------Cancel Order----------------->
@@ -191,18 +197,13 @@ const cancelOrder = async (req, res) => {
         }
 
         // If the order cannot be deleted
-        return res.json({ success: true, message: "Order already processed. Reloading...", status: 500 });
+        return res.json({ success: true, message: "Order already processed.", status: 500 });
 
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
-
-
-
-
 
 // <--------------Mpesa webhook----------------->
 const mpesaWebhook = async (req, res) => {
@@ -226,7 +227,7 @@ const mpesaWebhook = async (req, res) => {
 
         res.status(200).send("OK");
     } catch (error) {
-        console.error("Error updating transaction:", error);
+        console.error("Error updating transaction:", error.message);
         res.status(500).send("Server Error");
     }
 }
@@ -239,7 +240,7 @@ const allOrders = async (req, res) => {
 
     }
     catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
     }
 }
@@ -253,7 +254,7 @@ const userOrders = async (req, res) => {
         res.json({ success: true, orders })
 
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
     }
 
@@ -266,10 +267,10 @@ const updateStatus = async (req, res) => {
         await orderModel.findByIdAndUpdate(orderId, { status })
         res.json({ success: true, message: "Status Updated" })
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.json({ success: false, message: error.message })
     }
 
 }
 
-export { placeOrder, placeOrderStripe, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, completePayment }
+export { placeOrder, userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment }
