@@ -159,11 +159,11 @@ const confirmPayment = async (req, res) => {
                 const verificationResponse = (await verifyPayment(checkout_id)).isOkay();
 
                 if (verificationResponse) {
-                    await orderModel.findByIdAndUpdate(orderId, {
+                    const updatedOrder = await orderModel.findByIdAndUpdate(orderId, {
                         checkoutId: stkResponse.data.CheckoutRequestID,
                         payment: true
                     });
-                    return res.json({ success: true, message: "Payment Successful after Retry" });
+                    return res.json({ success: true, message: "Payment Successful after Retry", updatedOrder });
                 } else {
                     return res.json({ success: false, message: "Payment Retry Unsuccessful" });
                 }
@@ -172,13 +172,13 @@ const confirmPayment = async (req, res) => {
             }
         }
     } catch (error) {
-        console.log(error.message);
+        console.log(error);
         return res.json({ success: false, message: "Error Verifying Payment -- ETIMEDOUT" });
     }
 };
 
 
-// <--------------Cancel Order----------------->
+// <--------------Cancel Order-----------------> 
 const cancelOrder = async (req, res) => {
     try {
         const { orderId } = req.body;
