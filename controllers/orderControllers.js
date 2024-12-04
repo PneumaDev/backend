@@ -91,8 +91,6 @@ const placeOrderMpesa = async (req, res) => {
             throw new Error("Transaction not processed");
         }
 
-        console.log("Safaricom response: ", mpesaResponse.data.CheckoutRequestID);
-
         const checkoutRequestId = await mpesaResponse.data.CheckoutRequestID
 
         // Prepare order data
@@ -136,12 +134,10 @@ const confirmPayment = async (req, res) => {
 
         const response = await verifyPayment(checkout_id);
 
-        console.log(response.data);
-
         if (response.data.ResultCode === 0) {
             // Proceed to get the order if there's an orderId
             if (orderId) {
-                await orderModel.findByIdAndUpdate(orderId, { payment: true });
+                await orderModel.findByIdAndUpdate(orderId, { payment: true, status: "Confirmed" });
                 return res.json({ success: true, message: "Payment Successful" });
             } else {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
