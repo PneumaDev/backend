@@ -15,7 +15,6 @@
   "author": "Paul Kamau",
   "license": "ISC",
   "dependencies": {
-    "@saverious/daraja": "^1.1.1",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.5.1",
     "cors": "^2.8.5",
@@ -28,7 +27,6 @@
     "mongoose": "^8.8.1",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.7",
-    "stripe": "^17.3.1",
     "uniqid": "^5.4.0",
     "validator": "^13.12.0"
   },
