@@ -190,8 +190,8 @@ const confirmPayment = async (req, res) => {
         if (response.data.ResultCode === 0 && response.isOkay()) {
             // Proceed to get the order if there's an orderId
             if (orderId) {
-                await orderModel.findByIdAndUpdate(orderId, { payment: true, status: "Confirmed" });
-                return res.json({ success: true, message: "Payment Successful" });
+                const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { payment: true, status: "Confirmed", status: 200 });
+                return res.json({ success: true, message: "Payment Successful", updatedOrder });
             } else {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
             }
