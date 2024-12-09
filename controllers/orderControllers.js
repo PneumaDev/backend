@@ -221,7 +221,7 @@ const confirmPayment = async (req, res) => {
                     return res.json({ success: true, message: "Stk Push Sent after retry" });
                 }
             } else {
-                return res.json({ success: false, message: response.data.ResultDesc || "Payment couldn't be verified" });
+                return res.json({ success: false, message: response.data.ResultDesc || "Payment couldn't be verified", status: response.data.ResultCode });
             }
         }
     } catch (error) {
