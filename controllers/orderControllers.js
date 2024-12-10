@@ -2,6 +2,7 @@ import orderModel from "../models/orderModel.js";
 import Transaction from "../models/transactionModel.js";
 import { Mpesa } from "daraja.js"
 import { ObjectId } from "mongodb";
+import userModel from './../models/userModel.js';
 
 const app = new Mpesa({
     consumerKey: process.env.MPESA_CONSUMER_KEY,
@@ -139,6 +140,8 @@ const placeOrderMpesa = async (req, res) => {
         // Save the order in the database
         const newOrder = new orderModel(orderData);
         const savedOrder = await newOrder.save();
+
+        await userModel.findByIdAndUpdate(userId, { cartData: {} })
 
         // Respond with success
         return res.status(200).json({
