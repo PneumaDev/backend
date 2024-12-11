@@ -93,13 +93,14 @@ const cancelOrder = async (req, res) => {
 // <<<<<<<<<<--------------------------------------------------------Mpesa Payments-------------------------------------------------------->>>>>>>>>>>>>>>
 // <--------------Place Orders Using Mpesa-------------->
 const placeOrderMpesa = async (req, res) => {
-    const { userId, items, amount, address } = req.body;
+    const { userId, items, amount, address, shippingMethod } = req.body;
 
     try {
         // Validate required fields
         if (!userId) throw new Error("Missing required field: userId");
         if (!items || items.length === 0) throw new Error("Cart items cannot be empty");
         if (!amount || amount <= 0) throw new Error("Invalid amount");
+        if (!shippingMethod) throw new Error("No shipping method.");
         if (!address || !address.phone || !address.firstName || !address.lastName) {
             throw new Error("Missing or incomplete address details");
         }
@@ -131,6 +132,7 @@ const placeOrderMpesa = async (req, res) => {
             address,
             items,
             amount,
+            shippingMethod,
             paymentMethod: "mpesa",
             payment: false,
             date: Date.now(),
