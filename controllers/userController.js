@@ -133,21 +133,49 @@ export const sendEmail = async (req, res) => {
         html: `
     <html>
       <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
-        <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-          <h1 style="color: #333333; border-bottom: 2px solid #ff9800; padding-bottom: 10px;">Contact Form Submission</h1>
-          <p style="font-size: 16px; color: #666666;"><strong>Name:</strong> <span style="color: #333333;">${name}</span></p>
-          <p style="font-size: 16px; color: #666666;"><strong>Email:</strong> <span style="color: #333333;">${email}</span></p>
-          <p style="font-size: 16px; color: #666666;"><strong>Contact:</strong> <span style="color: #333333;">${contact}</span></p>
-          <p style="font-size: 16px; color: #666666;"><strong>Message:</strong></p>
-          <p style="font-size: 16px; color: #333333; background-color: #f2f2f2; padding: 10px; border-radius: 5px;">${message}</p>
-          <p style="font-size: 16px; color: #666666;"><strong>Subscribe to Newsletter:</strong>
-            <span style="color: ${subscribe ? '#4caf50' : '#f44336'};">
-              ${subscribe ? 'Yes' : 'No'}
-            </span>
-          </p>
-          <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;" />
-          <p style="font-size: 12px; color: #999999;">This is an automated message. Please do not reply directly to this email.</p>
-        </div>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 5px; padding: 20px; background-color: #f9f9f9;">
+            <h2 style="color: #333; text-align: center; background-color: #007bff; color: #fff; padding: 10px; border-radius: 5px;">Order Confirmation</h2>
+            <p style="color: #555;">Dear John Doe,</p>
+            <p style="color: #555;">Thank you for your order! Here are your order details:</p>
+
+            <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Order Summary</h3>
+            <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li style="display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+                <img src="https://via.placeholder.com/80" alt="Laptop" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
+            <div>
+                <p style="margin: 0; font-size: 16px; font-weight: bold;">Laptop</p>
+                <p style="margin: 0; font-size: 14px; color: #555;">Quantity: 1</p>
+                <p style="margin: 0; font-size: 14px; color: #555;">Price: $1200</p>
+            </div>
+            </li>
+            <li style="display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+            <img src="https://via.placeholder.com/80" alt="Wireless Mouse" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
+            <div>
+                <p style="margin: 0; font-size: 16px; font-weight: bold;">Wireless Mouse</p>
+                <p style="margin: 0; font-size: 14px; color: #555;">Quantity: 2</p>
+                <p style="margin: 0; font-size: 14px; color: #555;">Price: $40</p>
+            </div>
+        </li>
+    </ul>
+
+            <p style="font-size: 16px; font-weight: bold; color: #333;">Order Total: $1280</p>
+            <p style="font-size: 16px; font-weight: bold; color: #333;">Shipping Method: Express</p>
+
+            <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Shipping Address</h3>
+            <p style="color: #555;">
+                123 Main Street<br>
+                Springfield, IL, 62704<br>
+                USA
+            </p>
+
+    <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Order Status</h3>
+    <p style="color: #007bff; font-weight: bold; font-size: 16px;">Pending</p>
+
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+    <p style="font-size: 12px; color: #888; text-align: center;">
+        This is an automated email. Please do not reply.
+    </p>
+    </div>
       </body>
     </html>
   ` // HTML body content of the email
