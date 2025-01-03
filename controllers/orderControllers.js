@@ -115,7 +115,7 @@ const sendEmail = async (order) => {
         <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 5px; padding: 20px; background-color: #fff;">
             <h2 style="text-align: center; background-color: #007bff; color: #fff; padding: 10px; border-radius: 5px;">Order Confirmation</h2>
             <p style="color: #555;">Dear ${order.address.firstName + " " + order.address.lastName},</p>
-            <p style="color: #555;">Thank you for your order! Here are your order details:</p>
+            <p style="color: #555;">Thank you for shopping with us! Here are your order details:</p>
 
             <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Order Summary</h3>
             <ul style="list-style-type: none; padding: 0; margin: 0;">
@@ -265,15 +265,15 @@ const mpesaWebhook = async (req, res) => {
 // <--------------Complete Mpesa Orders Payment-------------->
 const confirmPayment = async (req, res) => {
     try {
-        const { orderId, checkout_id, retryPurchase, amount, phoneNumber } = req.body;
+        const { retryPurchase, order } = req.body;
 
-        const response = await verifyPayment(checkout_id);
+        const response = await verifyPayment(order.checkoutRequestId);
 
-        if (response.data.ResultCode !== 0) {
+        if (response.data.ResultCode === 0 && response.isOkay()) {
             // Proceed to get the order if there's an orderId
-            if (orderId) {
-                // const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { payment: true, status: "Confirmed", statusCode: 200 });
-                await sendEmail()
+            if (order._id) {
+                const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed", statusCode: 200 });
+                await sendEmail(updatedOrder)
                 return res.json({ success: true, message: "Payment Successful", updatedOrder });
             } else {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
@@ -281,8 +281,8 @@ const confirmPayment = async (req, res) => {
         } else {
 
             // Retry Purchase if order payment still pending.
-            if (retryPurchase && orderId) {
-                const stkResponse = await initiateStkPush(amount, phoneNumber, orderId);
+            if (retryPurchase && order._id) {
+                const stkResponse = await initiateStkPush(order.amount, order.address.phone, order._id);
                 const newCheckoutID = stkResponse.data.CheckoutRequestID;
 
                 // // Introduce a delay before verifying payment
@@ -291,14 +291,15 @@ const confirmPayment = async (req, res) => {
                 const verificationResponse = (await verifyPayment(newCheckoutID));
 
                 if (verificationResponse.data.ResultCode === 0 && verificationResponse.isOkay()) {
-                    await orderModel.findByIdAndUpdate(orderId, {
+                    const updatedOrder = await orderModel.findByIdAndUpdate(order._id, {
                         checkoutId: stkResponse.data.CheckoutRequestID,
                         payment: true,
                         status: "Confirmed"
                     });
+                    await sendEmail(updatedOrder)
                     return res.json({ success: true, message: "Payment Successful after Retry" });
                 } else {
-                    await orderModel.findByIdAndUpdate(orderId, {
+                    await orderModel.findByIdAndUpdate(order._id, {
                         checkoutId: stkResponse.data.CheckoutRequestID,
                     });
                     return res.json({ success: true, message: "Stk Push Sent after retry" });
@@ -308,7 +309,7 @@ const confirmPayment = async (req, res) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         return res.json({ success: false, message: "Error Verifying Payment -- ETIMEDOUT" });
     }
 };
