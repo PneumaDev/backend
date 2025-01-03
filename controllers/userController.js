@@ -3,7 +3,6 @@ import validator from "validator";
 import bycrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import uniqid from 'uniqid'
-import nodemailer from "nodemailer";
 
 
 
