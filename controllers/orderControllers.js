@@ -144,7 +144,7 @@ const sendEmail = async (order) => {
             <p style="color: #555;">${order.address.county}</p>
 
             <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Order Status</h3>
-            <p style="color: #007bff; font-weight: bold; font-size: 16px;">${order.status ? order.status : "Pending"}</p>
+            <p style="color: #007bff; font-weight: bold; font-size: 16px;">${order.status}</p>
 
             <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
             <p style="font-size: 12px; color: #888; text-align: center;">
@@ -269,24 +269,21 @@ const confirmPayment = async (req, res) => {
 
         const response = await verifyPayment(order.checkoutRequestId);
 
-        if (response.data.ResultCode === 0 && response.isOkay()) {
+        if (response.data.ResultCode === "0" && response.isOkay()) {
             // Proceed to get the order if there's an orderId
             if (order._id) {
-                const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed", statusCode: 200 });
+                console.log(order._id);
+                const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
                 await sendEmail(updatedOrder)
-                return res.json({ success: true, message: "Payment Successful", updatedOrder });
+                return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
             } else {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
             }
         } else {
-
             // Retry Purchase if order payment still pending.
             if (retryPurchase && order._id) {
                 const stkResponse = await initiateStkPush(order.amount, order.address.phone, order._id);
                 const newCheckoutID = stkResponse.data.CheckoutRequestID;
-
-                // // Introduce a delay before verifying payment
-                await delay(3000);
 
                 const verificationResponse = (await verifyPayment(newCheckoutID));
 
@@ -302,7 +299,7 @@ const confirmPayment = async (req, res) => {
                     await orderModel.findByIdAndUpdate(order._id, {
                         checkoutId: stkResponse.data.CheckoutRequestID,
                     });
-                    return res.json({ success: true, message: "Stk Push Sent after retry" });
+                    return res.json({ success: true, message: "Stk Push Sent after retry", status: 202 });
                 }
             } else {
                 return res.json({ success: false, message: response.data.ResultDesc || "Payment couldn't be verified", status: response.data.ResultCode });
