@@ -174,17 +174,17 @@ export const sendEmail = async (order) => {
     <!-- Subtotal Row -->
     <tr style="border-bottom: 1px solid #e5e7eb; padding: 8px 0;">
       <td style="text-align: left; font-size: 15px; color: #6b7280; font-weight: 500; padding: 8px 0;">Subtotal(Ksh):</td>
-      <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString()}</td>
+      <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString() + ".00"}</td>
     </tr>
     <!-- Shipping Row -->
     <tr style="border-bottom: 1px solid #e5e7eb; padding: 8px 0;">
       <td style="text-align: left; font-size: 15px; color: #6b7280; font-weight: 500; padding: 8px 0;">Shipping(Ksh) (${order.shippingMethod.method}):</td>
-      <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">${order.shippingMethod.price == 0 ? "FREE" : `${order.shippingMethod.price.toLocaleString()}`}</td>
+      <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">${order.shippingMethod.price == 0 ? "FREE" : `${order.shippingMethod.price.toLocaleString() + ".00"}`}</td>
     </tr>
     <!-- Total Row -->
     <tr>
       <td style="text-align: left; font-size: 17px; color: #111827; font-weight: 700; padding: 8px 0;">Total(Ksh):</td>
-      <td style="text-align: right; font-size: 18px; color: #1a56db; font-weight: 700; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString()}</td>
+      <td style="text-align: right; font-size: 18px; color: #1a56db; font-weight: 700; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString() + ".00"}</td>
     </tr>
   </table>
 </div>
