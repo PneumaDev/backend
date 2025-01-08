@@ -3,7 +3,7 @@ import Transaction from "../models/transactionModel.js";
 import { Mpesa } from "daraja.js"
 import { ObjectId } from "mongodb";
 import userModel from './../models/userModel.js';
-import nodemailer from "nodemailer";
+import { sendEmail } from "../config/email.js";
 
 
 const app = new Mpesa({
@@ -34,15 +34,6 @@ const verifyPayment = async (checkout_id) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Create a transporter object using SMTP transport
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-});
-
 
 
 // <<<<<<<<<<--------------------------------------------------------User Routes-------------------------------------------------------->>>>>>>>>>>>>>>
@@ -51,7 +42,8 @@ const userOrders = async (req, res) => {
     try {
         const { userId } = req.body;
 
-        const orders = await orderModel.find({ userId })
+        const orders = await orderModel.find({ userId }).sort({ updatedAt: 1 });
+
         res.json({ success: true, orders })
 
     } catch (error) {
@@ -103,70 +95,6 @@ const cancelOrder = async (req, res) => {
 
 
 // <<<<<<<<<<--------------------------------------------------------Mpesa Payments-------------------------------------------------------->>>>>>>>>>>>>>>
-// Controller function to send email
-const sendEmail = async (order) => {
-    const mailOptions = {
-        from: `"Eridanus Mall" <info@eridanus.com>`,
-        to: order.address.email,
-        subject: `Order Made Successfully`,
-        html: `
-    <html>
-      <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
-        <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 5px; padding: 20px; background-color: #fff;">
-            <h2 style="text-align: center; background-color: #007bff; color: #fff; padding: 10px; border-radius: 5px;">Order Confirmation</h2>
-            <p style="color: #555;">Dear ${order.address.firstName + " " + order.address.lastName},</p>
-            <p style="color: #555;">Thank you for shopping with us! Here are your order details:</p>
-
-            <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Order Summary</h3>
-            <ul style="list-style-type: none; padding: 0; margin: 0;">
-            ${order.items
-                .map(
-                    (item) => `
-                    <li style="display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
-                        <img src="${item.image[0]}" alt="${item._id}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
-                        <div>
-                            <p style="margin: 0; font-size: 16px; font-weight: bold;">${item.name}</p>
-                            <p style="margin: 0; font-size: 14px; color: #555;">Quantity: ${item.quantity}</p>
-                            <p style="margin: 0; font-size: 14px; color: #555;">Price: Ksh.${item.price}</p>
-                        </div>
-                    </li>
-                `
-                )
-                .join('')}
-            </ul>
-
-            <p style="font-size: 16px; font-weight: bold; color: #333;">Order Total: Ksh.${order.items.reduce((total, order) => total + order.quantity * order.price, 0)}</p>
-            <p style="font-size: 16px; font-weight: bold; color: #333;">Shipping Method: ${order.shippingMethod}</p>
-
-            <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Shipping Address</h3>
-            <p style="color: #555;">${order.address.street}</p>
-            <p style="color: #555;">${order.address.constituency}</p>
-            <p style="color: #555;">${order.address.county}</p>
-
-            <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Order Status</h3>
-            <p style="color: #007bff; font-weight: bold; font-size: 16px;">${order.status}</p>
-
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="font-size: 12px; color: #888; text-align: center;">
-                This is an automated email. Please do not reply.
-            </p>
-        </div>
-      </body>
-    </html>
-  `
-    };
-
-    try {
-        // Send email
-        await transporter.sendMail(mailOptions);
-        return { message: 'Email sent successfully', status: 200 };
-    } catch (error) {
-        console.error('Error sending email:', error);
-        return { message: 'Failed to send email', status: 301 };
-    }
-};
-
-
 // <--------------Place Orders Using Mpesa-------------->
 const placeOrderMpesa = async (req, res) => {
     const { userId, items, amount, address, shippingMethod } = req.body;
@@ -274,7 +202,8 @@ const confirmPayment = async (req, res) => {
             if (order._id) {
                 console.log(order._id);
                 const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
-                await sendEmail(updatedOrder)
+                const emailRes = await sendEmail(updatedOrder)
+                console.log(emailRes);
                 return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
             } else {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
@@ -284,6 +213,8 @@ const confirmPayment = async (req, res) => {
             if (retryPurchase && order._id) {
                 const stkResponse = await initiateStkPush(order.amount, order.address.phone, order._id);
                 const newCheckoutID = stkResponse.data.CheckoutRequestID;
+
+                delay(5000)
 
                 const verificationResponse = (await verifyPayment(newCheckoutID));
 
