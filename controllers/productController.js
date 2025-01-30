@@ -5,6 +5,8 @@ import productModel from "../models/productModel.js";
 const addProduct = async (req, res) => {
     try {
         const { name, isOriginal, averageWeight, quantity, description, price, category, subCategory, bestSeller, sizes, sku, brand, discount, tags } = req.body;
+
+
         // Check if `req.files` exists and safely access each image
         const image1 = req.files?.image1 ? req.files.image1[0] : undefined;
         const image2 = req.files?.image2 ? req.files.image2[0] : undefined;
@@ -13,6 +15,7 @@ const addProduct = async (req, res) => {
 
         const images = [image1, image2, image3, image4].filter(image => image !== undefined);
 
+        // Upload images to Cloudinary
         let imagesUrl = await Promise.all(
             images.map(async (item) => {
                 let result = await cloudinary.uploader.upload(item.path, { resource_type: 'image' })
@@ -20,6 +23,7 @@ const addProduct = async (req, res) => {
             })
         )
 
+        // Create a new product object
         const productData = {
             name,
             averageWeight,
@@ -39,9 +43,8 @@ const addProduct = async (req, res) => {
             date: Date.now(),
         }
 
-
+        // Save the product to the database
         const product = new productModel(productData)
-
         await product.save()
 
         res.json({ success: true, message: "Product added!" })
