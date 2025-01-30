@@ -13,7 +13,6 @@ const productSchema = new mongoose.Schema({
     bestSeller: { type: Boolean },
     date: { type: Number, required: true },
     sku: { type: String, unique: true },
-    brand: { type: String },
     ratings: { type: Number, min: 0, max: 5 },
     reviews: [
         {
@@ -24,7 +23,7 @@ const productSchema = new mongoose.Schema({
         }
     ],
     discount: { type: Number, default: 0 },
-    tags: { type: Array, required: true }
+    tags: { type: Array }
 });
 
 const productModel = mongoose.models.product || mongoose.model("product", productSchema);
