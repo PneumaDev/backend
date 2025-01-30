@@ -184,7 +184,7 @@ export const sendEmail = async (order) => {
     <!-- Total Row -->
     <tr>
       <td style="text-align: left; font-size: 17px; color: #111827; font-weight: 700; padding: 8px 0;">Total(Ksh):</td>
-      <td style="text-align: right; font-size: 18px; color: #1a56db; font-weight: 700; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString() + ".00"}</td>
+      <td style="text-align: right; font-size: 18px; color: #1a56db; font-weight: 700; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString() + order.shippingMethod.price + ".00"}</td>
     </tr>
   </table>
 </div>
