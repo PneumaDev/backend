@@ -31,7 +31,7 @@ const addProduct = async (req, res) => {
             sku,
             brand,
             discount,
-            tags: JSON.parse(tags),
+            tags: tags && JSON.parse(tags),
             description,
             category,
             isOriginal,
@@ -58,7 +58,7 @@ const addProduct = async (req, res) => {
 const listProduct = async (req, res) => {
     try {
         // Specify only the fields to retrieve
-        const products = await productModel.find({}).limit(20);
+        const products = await productModel.find({});
 
         // Send the response with the selected fields
         res.json({ success: true, products });
@@ -85,6 +85,7 @@ const removeProduct = async (req, res) => {
 // <-------- Function to get single product info --------->
 const singleProductInfo = async (req, res) => {
     try {
+        console.log('Called');
         const { productId } = req.body
         const product = await productModel.findById(productId)
         res.json({ success: true, product })
