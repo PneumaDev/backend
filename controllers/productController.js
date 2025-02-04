@@ -58,7 +58,7 @@ const addProduct = async (req, res) => {
 const listProduct = async (req, res) => {
     try {
         // Specify only the fields to retrieve
-        const products = await productModel.find({}).select('name description price image bestSeller sizes category subCategory');
+        const products = await productModel.find({}).limit(20);
 
         // Send the response with the selected fields
         res.json({ success: true, products });
