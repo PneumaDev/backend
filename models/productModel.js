@@ -24,6 +24,8 @@ const productSchema = new mongoose.Schema({
     ],
     discount: { type: Number, default: 0 },
     tags: { type: Array }
+}, {
+    timestamps: true
 });
 
 const productModel = mongoose.models.product || mongoose.model("product", productSchema);
