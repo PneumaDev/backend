@@ -1,5 +1,5 @@
 import express from "express";
-import { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment } from "../controllers/orderControllers.js";
+import { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo } from "../controllers/orderControllers.js";
 import adminAuth from './../middleware/adminAuth.js';
 import authUser from './../middleware/auth.js';
 
@@ -8,6 +8,7 @@ const orderRouter = express.Router();
 // <--------Admin feautures---------->
 orderRouter.post('/list', adminAuth, allOrders)
 orderRouter.post('/status', adminAuth, updateStatus)
+orderRouter.post("/single", adminAuth, singleOrderInfo)
 
 // <--------Payment Feautures---------->
 orderRouter.post("/mpesa", authUser, placeOrderMpesa)
