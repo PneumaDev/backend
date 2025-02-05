@@ -58,7 +58,7 @@ const addProduct = async (req, res) => {
 const listProduct = async (req, res) => {
     try {
         // Specify only the fields to retrieve
-        const products = await productModel.find({});
+        const products = await productModel.find({}).sort({ createdAt: -1 });
 
         // Send the response with the selected fields
         res.json({ success: true, products });
