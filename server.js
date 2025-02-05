@@ -17,6 +17,11 @@ connectCloudinary()
 // Middlewares
 app.use(express.json())
 
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - From: ${req.ip}`);
+    next(); // Continue to next middleware/route
+});
+
 app.use(cors({
     origin: ['https://eridanusmall.vercel.app', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'https://eridanusadmin.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
