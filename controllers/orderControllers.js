@@ -249,15 +249,26 @@ const confirmPayment = async (req, res) => {
 // <--------------Get all orders for Admin Panel-------------->
 const allOrders = async (req, res) => {
     try {
-        const orders = await orderModel.find({})
-        res.json({ success: true, orders })
-
-    }
-    catch (error) {
+        const orders = await orderModel.find({}).sort({ createdAt: -1 });
+        res.json({ success: true, orders });
+    } catch (error) {
         console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+
+const singleOrderInfo = async (req, res) => {
+    try {
+        const { orderId } = req.body
+        const order = await productModel.findById(orderId)
+        res.json({ success: true, order })
+
+    } catch (error) {
+        console.log(error);
         res.json({ success: false, message: error.message })
     }
 }
 
 
-export { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment }
+export { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo }
