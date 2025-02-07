@@ -4,7 +4,7 @@ import productModel from "../models/productModel.js";
 // <-------- Function to add product --------->
 const addProduct = async (req, res) => {
     try {
-        const { name, isOriginal, averageWeight, quantity, description, price, category, subCategory, bestSeller, sizes, sku, brand, discount, tags } = req.body;
+        const { name, isOriginal, averageWeight, quantity, description, price, category, subCategory, sizes, sku, brand, discount, tags } = req.body;
 
 
         // Check if `req.files` exists and safely access each image
@@ -37,7 +37,6 @@ const addProduct = async (req, res) => {
             isOriginal,
             price: Number(price),
             subCategory,
-            bestSeller: bestSeller === "true" ? true : false,
             sizes: JSON.parse(sizes),
             image: imagesUrl,
             date: Date.now(),
@@ -53,6 +52,9 @@ const addProduct = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+// <-------- Function to update product --------->
+const updateProduct = async () => { }
+
 
 // <-------- Function to list product --------->
 const listProduct = async (req, res) => {
@@ -96,4 +98,4 @@ const singleProductInfo = async (req, res) => {
     }
 }
 
-export { removeProduct, singleProductInfo, listProduct, addProduct }
+export { removeProduct, singleProductInfo, listProduct, addProduct, updateProduct }
