@@ -18,7 +18,7 @@ connectCloudinary()
 app.use(express.json())
 
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - From: ${req.ip}`);
+    console.log(`[${new Date().toISOString()}] ${req.url} - From: ${req.ip}`);
     next(); // Continue to next middleware/route
 });
 
