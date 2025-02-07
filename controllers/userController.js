@@ -118,9 +118,19 @@ const getUser = async (req, res) => {
         const user = await userModel.findById(userId)
         res.json({ success: true, user })
     } catch (error) {
-        console.log(error.message);
+        console.log(error);
+        res.json({ success: false, message: error.message })
     }
 }
 
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({})
+        res.json({ success: true, users })
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message })
+    }
+}
 
-export { loginUser, registerUser, adminLogin, getUser }
+export { loginUser, registerUser, adminLogin, getUser, getAllUsers }
