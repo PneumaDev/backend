@@ -59,17 +59,58 @@ const updateProduct = async () => { }
 // <-------- Function to list product --------->
 const listProduct = async (req, res) => {
     try {
-        // Specify only the fields to retrieve
-        const products = await productModel.find({}).sort({ createdAt: -1 });
+        let query = {};
 
-        // Send the response with the selected fields
+        // Apply filters
+        if (req.query.name) {
+            query.$text = { $search: req.query.name };
+        }
+        if (req.query.category && req.query.category !== "All") {
+            query.category = req.query.category;
+        }
+        if (req.query.subCategory && req.query.subCategory !== "All") {
+            query.subCategory = req.query.subCategory;
+        }
+        if (req.query.minPrice) {
+            query.price = { ...query.price, $gte: Number(req.query.minPrice) };
+        }
+        if (req.query.maxPrice) {
+            query.price = { ...query.price, $lte: Number(req.query.maxPrice) };
+        }
+        if (req.query.bestSeller) {
+            query.bestSeller = req.query.bestSeller === "true";
+        }
+        if (req.query.inStock) {
+            query.inStock = req.query.inStock === "true";
+        }
+
+        // Pagination
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // Extract fields from query parameters
+        let projection = {};
+        if (req.query.fields) {
+            req.query.fields.split(",").forEach(field => {
+                projection[field] = 1; // Include only requested fields
+            });
+        }
+
+        // Fetch products with projection
+        const products = await productModel
+            .find(query, projection)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
         res.json({ success: true, products });
+
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
-}
-
+};
 
 // <-------- Function to remove product --------->
 const removeProduct = async (req, res) => {
@@ -87,7 +128,6 @@ const removeProduct = async (req, res) => {
 // <-------- Function to get single product info --------->
 const singleProductInfo = async (req, res) => {
     try {
-        console.log('Called');
         const { productId } = req.body
         const product = await productModel.findById(productId)
         res.json({ success: true, product })
