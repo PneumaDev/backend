@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
             facebookId: { type: String }
         }
     },
-    { timestamps: true }
+    { timestamps: true }, { minimize: false }
 );
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);

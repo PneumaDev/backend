@@ -74,15 +74,25 @@ const updateCart = async (req, res) => {
 // <---------Get User Cart------------->
 const getUserCart = async (req, res) => {
     try {
-        const { userId } = req.body
-        let userData = await userModel.findById(userId)
+        const { userId } = req.body;
 
-        res.json({ success: true, userData })
+        // Fetch only the `cartData` field for the user
+        let user = await userModel.findById(userId).lean();;
+
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
+        }
+
+        if (!user.cartData) {
+            user.cartData = {};
+        }
+        res.json({ success: true, user });
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
-}
+};
+
 
 export { addToCart, updateCart, getUserCart }
 

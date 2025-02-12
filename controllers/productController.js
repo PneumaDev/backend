@@ -4,7 +4,7 @@ import productModel from "../models/productModel.js";
 // <-------- Function to add product --------->
 const addProduct = async (req, res) => {
     try {
-        const { name, isOriginal, averageWeight, quantity, description, price, category, subCategory, sizes, sku, brand, discount, tags } = req.body;
+        const { name, isOriginal, averageWeight, bestSeller, quantity, description, price, category, subCategory, sizes, sku, brand, discount, tags } = req.body;
 
 
         // Check if `req.files` exists and safely access each image
@@ -33,6 +33,7 @@ const addProduct = async (req, res) => {
             discount,
             tags: tags && JSON.parse(tags),
             description,
+            bestSeller,
             category,
             isOriginal,
             price: Number(price),
@@ -52,8 +53,13 @@ const addProduct = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+
+
 // <-------- Function to update product --------->
-const updateProduct = async () => { }
+const updateProduct = async (req, res) => {
+    const productId = req.body.id
+    await productModel.findByIdAndUpdate()
+}
 
 
 // <-------- Function to list product --------->
@@ -84,16 +90,29 @@ const listProduct = async (req, res) => {
             query.inStock = req.query.inStock === "true";
         }
 
+        // Add `ids` filter
+        if (req.query.ids) {
+            const idsArray = req.query.ids.split(",");
+            query._id = { $in: idsArray };
+        }
+
         // Pagination
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 10;
+        const limit = Number(req.query.limit) || 12;
         const skip = (page - 1) * limit;
 
-        // Extract fields from query parameters
+        // Extract fields from request (handle both array and string cases)
+        let fields = req.query.fields || (req.body ? req.body.fields : "");
         let projection = {};
-        if (req.query.fields) {
-            req.query.fields.split(",").forEach(field => {
-                projection[field] = 1; // Include only requested fields
+
+        if (Array.isArray(fields)) {
+            // If fields is an array, join it into a comma-separated string
+            fields = fields.join(",");
+        }
+
+        if (typeof fields === "string" && fields.length > 0) {
+            fields.split(",").forEach(field => {
+                projection[field.trim()] = 1; // Include only requested fields
             });
         }
 
@@ -111,6 +130,7 @@ const listProduct = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+
 
 // <-------- Function to remove product --------->
 const removeProduct = async (req, res) => {
