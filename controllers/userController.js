@@ -3,8 +3,8 @@ import validator from "validator";
 import bycrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import uniqid from 'uniqid'
-
-
+import orderModel from "../models/orderModel.js";
+import productModel from "../models/productModel.js";
 
 const createToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET)
@@ -110,6 +110,37 @@ const adminLogin = async (req, res) => {
     }
 }
 
+const getTotalCounts = async (req, res) => {
+    try {
+        const result = await Promise.all([
+            userModel.aggregate([{ $count: "total" }]),
+            productModel.aggregate([{ $count: "total" }]),
+            orderModel.aggregate([{ $count: "total" }]),
+            orderModel.aggregate([
+                { $match: { payment: true } },
+                { $group: { _id: null, totalRevenue: { $sum: "$amount" } } }
+            ]),
+            orderModel.aggregate([
+                { $group: { _id: null, totalRevenue: { $sum: "$amount" } } } // All orders
+            ])
+        ]);
+
+        // Extract values with default 0 if empty
+        const counts = [
+            { category: "users", total: result[0][0]?.total || 0 },
+            { category: "products", total: result[1][0]?.total || 0 },
+            { category: "orders", total: result[2][0]?.total || 0 },
+            { category: "actualRevenue", total: result[3][0]?.totalRevenue || 0 },
+            { category: "potentialRevenue", total: result[4][0]?.totalRevenue || 0 }
+        ];
+
+        res.json({ success: true, counts });
+    } catch (error) {
+        console.error("Error fetching document counts:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
 
 const getUser = async (req, res) => {
     const { userId } = req.body
@@ -133,4 +164,4 @@ const getAllUsers = async (req, res) => {
     }
 }
 
-export { loginUser, registerUser, adminLogin, getUser, getAllUsers }
+export { loginUser, registerUser, adminLogin, getUser, getAllUsers, getTotalCounts }
