@@ -106,20 +106,21 @@ const listProduct = async (req, res) => {
         let projection = {};
 
         if (Array.isArray(fields)) {
-            // If fields is an array, join it into a comma-separated string
             fields = fields.join(",");
         }
 
         if (typeof fields === "string" && fields.length > 0) {
             fields.split(",").forEach(field => {
-                projection[field.trim()] = 1; // Include only requested fields
+                projection[field.trim()] = 1;
             });
         }
 
-        // Fetch products with projection
+        console.log(skip);
+
+        // Fetch products with proper sorting
         const products = await productModel
             .find(query, projection)
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1, _id: -1 })
             .skip(skip)
             .limit(limit);
 
@@ -130,7 +131,6 @@ const listProduct = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
-
 
 // <-------- Function to remove product --------->
 const removeProduct = async (req, res) => {
