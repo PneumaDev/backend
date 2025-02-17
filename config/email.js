@@ -167,7 +167,7 @@ export const sendEmail = async (order) => {
                   <img src="${item.image[0]}" alt="${item.name}" style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
                   
                   <!-- Product Details -->
-                  <div style="flex: 1;">
+                  <div style="display: flex; gap: 24px;">
                     <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">${item.name}</h3>
                     <p style="margin: 4px 0; font-size: 14px; color: #666;">
                       <strong>Qty:</strong> ${size.quantity} &nbsp; | &nbsp;
