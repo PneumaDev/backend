@@ -166,34 +166,29 @@ export const sendEmail = async (order) => {
             />
 
             <!-- Product Details -->
-            <<div style="flex: 1; min-width: 0;">
-  <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">
-    ${item.name}
-  </h3>
+            <div style="flex: 1;">
+              <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">
+                ${item.name}
+              </h3>
 
-  <p style="margin: 4px 0; font-size: 14px; color: #666;">
-    <strong>Qty:</strong> ${size.quantity} &nbsp; | &nbsp;
-    <strong>Size:</strong> ${size.size} &nbsp; | &nbsp;
-    <strong>Price:</strong> Ksh. ${item.price.toLocaleString()}
-  </p>
+              <p style="margin: 4px 0; font-size: 14px; color: #666;">
+                <strong>Qty:</strong> ${size.quantity} &nbsp; | &nbsp;
+                <strong>Size:</strong> ${size.size} &nbsp; | &nbsp;
+                <strong>Price:</strong> Ksh. ${item.price.toLocaleString()}
+              </p>
 
-  <!-- Product Description with Line Clamp -->
-  <p style="
-    margin: 0;
-    font-size: 13px;
-    color: #777;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    max-height: 50px; /* Adjust based on font size */
-    word-wrap: break-word;
-    width: 100%; /* Ensure it has a width */
-  ">
-    ${item.description}
-  </p>
-</div>
-
+              <!-- Product Description with Line Clamp -->
+              <p style="
+                margin: 0; 
+                font-size: 13px; 
+                color: #777; 
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 3;">
+                ${item.description}
+              </p>
+            </div>
           </div>
         `;
           })
