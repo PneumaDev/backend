@@ -71,15 +71,7 @@ export const sendEmail = async (order) => {
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 8px;
   }
-  .order-item {
-    display: flex;
-    align-items: center;
-    padding: 16px 0;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .order-item:last-child {
-    border-bottom: none;
-  }
+
   .order-item img {
     width: 70px;
     height: 70px;
@@ -87,20 +79,8 @@ export const sendEmail = async (order) => {
     border-radius: 8px;
     margin-right: 16px;
   }
-  .order-item-details {
-    flex-grow: 1;
-  }
-  .order-item-details h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-  }
-  .order-item-details p {
-    margin: 4px 0;
-    font-size: 14px;
-    color: #6b7280;
-  }
+
+
   .totals {
     margin-top: 20px;
     padding: 16px;
@@ -164,12 +144,25 @@ export const sendEmail = async (order) => {
             }
 
             return `
-          <div style="display: flex; align-items: center; gap: 24px; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <div style="
+            display: flex; 
+            align-items: center; 
+            padding: 12px 0; 
+            border-bottom: 1px solid #e5e7eb;
+            gap: 16px; /* Added spacing between image & text */
+          ">
             <!-- Product Image -->
             <img 
               src="${item.image[0]}" 
               alt="${item.name}" 
-              style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px; flex-shrink: 0;"
+              style="
+                width: 80px; 
+                height: 112px; 
+                object-fit: cover; 
+                border-radius: 8px; 
+                flex-shrink: 0;
+                margin-right: 16px; /* Extra spacing for better separation */
+              "
             />
 
             <!-- Product Details -->
