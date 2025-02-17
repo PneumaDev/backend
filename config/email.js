@@ -138,75 +138,98 @@ export const sendEmail = async (order) => {
 </style>
 
       </head>
-      <body>
-        <div class="container">
-          <!-- Header -->
-          <div class="header">
-            <h1>Order Confirmation</h1>
-            <p>Thank you for your purchase!</p>
-          </div>
+     <body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Order Confirmation</h1>
+      <p>Thank you for your purchase!</p>
+    </div>
 
-          <!-- Content -->
-          <div class="content">
-            <p>Hi ${order.address.firstName} ${order.address.lastName},</p>
-            <p>Your order has been confirmed. Below is the summary:</p>
+    <!-- Content -->
+    <div class="content">
+      <p>Hi ${order.address.firstName} ${order.address.lastName},</p>
+      <p>Your order has been confirmed. Below is the summary:</p>
 
-            <!-- Order Summary -->
-            <div>
-              <h2 class="section-title">Order Summary</h2>
-              ${order.items
-        .map(
-          (item) => `
-                  <div class="order-item">
-                    <img src="${item.image[0]}" alt="${item.name}">
-                    <div class="order-item-details">
-                      <h3>${item.name}</h3>
-                      <p>Quantity: ${item.quantity}</p>
-                      <p>Price: Ksh. ${item.price.toLocaleString()}</p>
-                    </div>
-                  </div>`
+      <!-- Order Summary -->
+      <div>
+        <h2 class="section-title">Order Summary</h2>
+        ${order.items
+        .flatMap((item) =>
+          item.sizes.map((size) => {
+            if (!item.image || item.image.length === 0) {
+              console.warn(`No image found for item: ${item.name}`);
+              return "";
+            }
+            return `
+                <div style="display: flex; align-items: center; gap: 16px; padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                  <!-- Product Image -->
+                  <img src="${item.image[0]}" alt="${item.name}" style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px;">
+                  
+                  <!-- Product Details -->
+                  <div style="flex: 1;">
+                    <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">${item.name}</h3>
+                    <p style="margin: 4px 0; font-size: 14px; color: #666;">
+                      <strong>Qty:</strong> ${size.quantity} &nbsp; | &nbsp;
+                      <strong>Size:</strong> ${size.size} &nbsp; | &nbsp;
+                      <strong>Price:</strong> Ksh. ${item.price.toLocaleString()}
+                    </p>
+                    <p style="margin: 0; font-size: 13px; color: #777; line-height: 1.4;">
+                      ${item.description}
+                    </p>
+                  </div>
+                </div>
+              `;
+          })
         )
-        .join('')}
-            </div>
+        .join("")}
+      </div>
 
-<div class="totals" style="margin-top: 20px; padding: 16px; background-color: #f9fafb; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
-  <table style="width: 100%; border-collapse: collapse;">
-    <!-- Subtotal Row -->
-    <tr style="border-bottom: 1px solid #e5e7eb; padding: 8px 0;">
-      <td style="text-align: left; font-size: 15px; color: #6b7280; font-weight: 500; padding: 8px 0;">Subtotal(Ksh):</td>
-      <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">${order.items.reduce((total, item) => total + item.quantity * item.price, 0).toLocaleString() + ".00"}</td>
-    </tr>
-    <!-- Shipping Row -->
-    <tr style="border-bottom: 1px solid #e5e7eb; padding: 8px 0;">
-      <td style="text-align: left; font-size: 15px; color: #6b7280; font-weight: 500; padding: 8px 0;">Shipping(Ksh) (${order.shippingMethod.method}):</td>
-      <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">${order.shippingMethod.price == 0 ? "FREE" : `${order.shippingMethod.price.toLocaleString() + ".00"}`}</td>
-    </tr>
-    <!-- Total Row -->
-    <tr>
-      <td style="text-align: left; font-size: 17px; color: #111827; font-weight: 700; padding: 8px 0;">Total(Ksh):</td>
-      <td style="text-align: right; font-size: 18px; color: #1a56db; font-weight: 700; padding: 8px 0;">${order.items.reduce((total, item) => total + order.shippingMethod.price + item.quantity * item.price, 0).toLocaleString() + ".00"}</td>
-    </tr>
-  </table>
-</div>
+      <!-- Totals Section -->
+      <div class="totals" style="margin-top: 20px; padding: 16px; background-color: #f9fafb; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
+        <table style="width: 100%; border-collapse: collapse;">
+          <!-- Subtotal Row -->
+          <tr style="border-bottom: 1px solid #e5e7eb; padding: 8px 0;">
+            <td style="text-align: left; font-size: 15px; color: #6b7280; font-weight: 500; padding: 8px 0;">Subtotal(Ksh):</td>
+            <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">
+              ${order.items.reduce((total, item) => total + item.sizes.reduce((sizeTotal, size) => sizeTotal + size.quantity * item.price, 0), 0) + ".00"}
+            </td>
+          </tr>
+          <!-- Shipping Row -->
+          <tr style="border-bottom: 1px solid #e5e7eb; padding: 8px 0;">
+            <td style="text-align: left; font-size: 15px; color: #6b7280; font-weight: 500; padding: 8px 0;">Shipping(Ksh) (${order.shippingMethod.method}):</td>
+            <td style="text-align: right; font-size: 16px; color: #111827; font-weight: 600; padding: 8px 0;">
+              ${order.shippingMethod.price == 0 ? "FREE" : `${order.shippingMethod.price + ".00"}`}
+            </td>
+          </tr>
+          <!-- Total Row -->
+          <tr>
+            <td style="text-align: left; font-size: 17px; color: #111827; font-weight: 700; padding: 8px 0;">Total(Ksh):</td>
+            <td style="text-align: right; font-size: 18px; color: #1a56db; font-weight: 700; padding: 8px 0;">
+              ${order.items.reduce((total, item) => total + order.shippingMethod.price + item.sizes.reduce((sizeTotal, size) => sizeTotal + size.quantity * item.price, 0), 0) + ".00"}
+            </td>
+          </tr>
+        </table>
+      </div>
 
+      <!-- Shipping Details -->
+      <div>
+        <h2 class="section-title">Shipping Details</h2>
+        <p>${order.address.street}, ${order.address.constituency}, ${order.address.county}</p>
+      </div>
+    </div>
 
-            <!-- Shipping Details -->
-            <div>
-              <h2 class="section-title">Shipping Details</h2>
-              <p>${order.address.street}, ${order.address.constituency}, ${order.address.county}</p>
-            </div>
-          </div>
+    <!-- Footer -->
+    <div class="footer">
+      <p>If you have any questions, contact us:</p>
+      <a href="https://eridanusmall.vercel.app/contact">Support</a> | 
+      <a href="https://eridanusmall.vercel.app/orders">Track Order</a> | 
+      <a href="https://eridanusmall.vercel.app/contact">Return Policy</a>
+      <p>This is an automated email. Do not reply.</p>
+    </div>
+  </div>
+</body>
 
-          <!-- Footer -->
-          <div class="footer">
-            <p>If you have any questions, contact us:</p>
-            <a href="https://eridanusmall.vercel.app/contact">Support</a> | 
-            <a href="https://eridanusmall.vercel.app/orders">Track Order</a> | 
-            <a href="https://eridanusmall.vercel.app/contact">Return Policy</a>
-            <p>This is an automated email. Do not reply.</p>
-          </div>
-        </div>
-      </body>
     </html>
   `
   };
