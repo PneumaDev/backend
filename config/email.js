@@ -182,8 +182,6 @@ export const sendEmail = async (order) => {
                 margin: 0; 
                 font-size: 13px; 
                 color: #777; 
-                line-height: 1.4; 
-                max-height: 2.8em; 
                 overflow: hidden;
                 display: -webkit-box;
                 -webkit-box-orient: vertical;
