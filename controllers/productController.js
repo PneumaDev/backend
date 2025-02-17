@@ -98,7 +98,7 @@ const listProduct = async (req, res) => {
 
         // Pagination
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 12;
+        const limit = Number(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
         // Extract fields from request (handle both array and string cases)
