@@ -126,7 +126,7 @@ export const sendEmail = async (order) => {
                   Order Summary
                </h2>
                <!-- Horizontal Line Below Order Summary -->
-               <hr style="border: none; border-top: 1px solid #e5e7eb; margin-bottom: 16px;">
+               <hr style="border: none; border-top: 2px solid #e2e8f0; margin-bottom: 16px;">
                ${order.items
         .flatMap((item) =>
           item.sizes.map((size) => {
