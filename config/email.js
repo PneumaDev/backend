@@ -162,9 +162,9 @@ export const sendEmail = async (order) => {
               return "";
             }
             return `
-                <div style="display: flex; align-items: center; gap: 16px; padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                <div style="display: flex; align-items: center; gap: 24px; padding: 12px; border-bottom: 1px solid #e5e7eb;">
                   <!-- Product Image -->
-                  <img src="${item.image[0]}" alt="${item.name}" style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px;">
+                  <img src="${item.image[0]}" alt="${item.name}" style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
                   
                   <!-- Product Details -->
                   <div style="flex: 1;">
@@ -174,7 +174,7 @@ export const sendEmail = async (order) => {
                       <strong>Size:</strong> ${size.size} &nbsp; | &nbsp;
                       <strong>Price:</strong> Ksh. ${item.price.toLocaleString()}
                     </p>
-                    <p style="margin: 0; font-size: 13px; color: #777; line-height: 1.4;">
+                    <p style="margin: 0; font-size: 13px; color: #777; line-height: 1.4; max-height: 4.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
                       ${item.description}
                     </p>
                   </div>
