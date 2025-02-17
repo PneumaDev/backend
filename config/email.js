@@ -187,7 +187,7 @@ export const sendEmail = async (order) => {
                 overflow: hidden;
                 display: -webkit-box;
                 -webkit-box-orient: vertical;
-                -webkit-line-clamp: 1;">
+                -webkit-line-clamp: 3;">
                 ${item.description}
               </p>
             </div>
