@@ -185,9 +185,9 @@ export const sendEmail = async (order) => {
                 line-height: 1.4; 
                 max-height: 2.8em; 
                 overflow: hidden;
-                display: -webkit-box; 
-                -webkit-line-clamp: 2; 
-                -webkit-box-orient: vertical;">
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 1;">
                 ${item.description}
               </p>
             </div>
