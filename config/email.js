@@ -152,38 +152,59 @@ export const sendEmail = async (order) => {
       <p>Your order has been confirmed. Below is the summary:</p>
 
       <!-- Order Summary -->
-      <div>
-        <h2 class="section-title">Order Summary</h2>
-        ${order.items
+<div style="font-family: Arial, sans-serif;">
+  <h2 style="font-size: 20px; color: #333; margin-bottom: 16px;">Order Summary</h2>
+
+  ${order.items
         .flatMap((item) =>
           item.sizes.map((size) => {
             if (!item.image || item.image.length === 0) {
               console.warn(`No image found for item: ${item.name}`);
               return "";
             }
+
             return `
-                <div style="display: flex; align-items: center; gap: 24px; padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                  <!-- Product Image -->
-                  <img src="${item.image[0]}" alt="${item.name}" style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
-                  
-                  <!-- Product Details -->
-                  <div style="display: flex; gap: 24px;">
-                    <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">${item.name}</h3>
-                    <p style="margin: 4px 0; font-size: 14px; color: #666;">
-                      <strong>Qty:</strong> ${size.quantity} &nbsp; | &nbsp;
-                      <strong>Size:</strong> ${size.size} &nbsp; | &nbsp;
-                      <strong>Price:</strong> Ksh. ${item.price.toLocaleString()}
-                    </p>
-                    <p style="margin: 0; font-size: 13px; color: #777; line-height: 1.4; max-height: 4.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
-                      ${item.description}
-                    </p>
-                  </div>
-                </div>
-              `;
+          <div style="display: flex; align-items: center; gap: 24px; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+            <!-- Product Image -->
+            <img 
+              src="${item.image[0]}" 
+              alt="${item.name}" 
+              style="width: 80px; height: 112px; object-fit: cover; border-radius: 8px; flex-shrink: 0;"
+            />
+
+            <!-- Product Details -->
+            <div style="flex: 1;">
+              <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">
+                ${item.name}
+              </h3>
+
+              <p style="margin: 4px 0; font-size: 14px; color: #666;">
+                <strong>Qty:</strong> ${size.quantity} &nbsp; | &nbsp;
+                <strong>Size:</strong> ${size.size} &nbsp; | &nbsp;
+                <strong>Price:</strong> Ksh. ${item.price.toLocaleString()}
+              </p>
+
+              <!-- Product Description with Line Clamp -->
+              <p style="
+                margin: 0; 
+                font-size: 13px; 
+                color: #777; 
+                line-height: 1.4; 
+                max-height: 2.8em; 
+                overflow: hidden;
+                display: -webkit-box; 
+                -webkit-line-clamp: 2; 
+                -webkit-box-orient: vertical;">
+                ${item.description}
+              </p>
+            </div>
+          </div>
+        `;
           })
         )
         .join("")}
-      </div>
+</div>
+
 
       <!-- Totals Section -->
       <div class="totals" style="margin-top: 20px; padding: 16px; background-color: #f9fafb; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
