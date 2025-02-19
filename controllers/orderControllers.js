@@ -261,7 +261,7 @@ const allOrders = async (req, res) => {
 const singleOrderInfo = async (req, res) => {
     try {
         const { orderId } = req.body
-        const order = await productModel.findById(orderId)
+        const order = await orderModel.findById(orderId)
         res.json({ success: true, order })
 
     } catch (error) {
