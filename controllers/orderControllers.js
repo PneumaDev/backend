@@ -34,8 +34,6 @@ const verifyPayment = async (checkout_id) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-
-
 // <<<<<<<<<<--------------------------------------------------------User Routes-------------------------------------------------------->>>>>>>>>>>>>>>
 // <--------------User Order Data for Frontend-------------->
 const userOrders = async (req, res) => {
@@ -92,7 +90,6 @@ const cancelOrder = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
 
 // <<<<<<<<<<--------------------------------------------------------Mpesa Payments-------------------------------------------------------->>>>>>>>>>>>>>>
 // <--------------Place Orders Using Mpesa-------------->
@@ -242,7 +239,6 @@ const confirmPayment = async (req, res) => {
     }
 };
 
-
 // <<<<<<<<<<--------------------------------------------------------Admin Routes-------------------------------------------------------->>>>>>>>>>>>>>>
 // <--------------Get all orders for Admin Panel-------------->
 const allOrders = async (req, res) => {
@@ -267,6 +263,5 @@ const singleOrderInfo = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
-
 
 export { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo }
