@@ -243,8 +243,6 @@ const confirmPayment = async (req, res) => {
 };
 
 
-
-
 // <<<<<<<<<<--------------------------------------------------------Admin Routes-------------------------------------------------------->>>>>>>>>>>>>>>
 // <--------------Get all orders for Admin Panel-------------->
 const allOrders = async (req, res) => {
