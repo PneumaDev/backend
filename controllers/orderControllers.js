@@ -251,7 +251,6 @@ const allOrders = async (req, res) => {
     }
 };
 
-
 const singleOrderInfo = async (req, res) => {
     try {
         const { orderId } = req.body
