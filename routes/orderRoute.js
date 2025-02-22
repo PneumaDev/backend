@@ -9,6 +9,8 @@ const orderRouter = express.Router();
 orderRouter.post('/list', adminAuth, allOrders)
 orderRouter.post('/status', adminAuth, updateStatus)
 orderRouter.post("/single", adminAuth, singleOrderInfo)
+orderRouter.post("/confirmPayment", adminAuth, confirmPayment)
+
 
 // <--------Payment Feautures---------->
 orderRouter.post("/mpesa", authUser, placeOrderMpesa)
