@@ -190,18 +190,20 @@ const mpesaWebhook = async (req, res) => {
 // <--------------Complete Mpesa Orders Payment-------------->
 const confirmPayment = async (req, res) => {
     try {
-        const { retryPurchase, order } = req.body;
+        const { retryPurchase, order, admin } = req.body;
 
         const response = await verifyPayment(order.checkoutRequestId);
 
         if (response.data.ResultCode === "0" && response.isOkay()) {
             // Proceed to get the order if there's an orderId
             if (order._id) {
-                console.log(order._id);
-                const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
-                const emailRes = await sendEmail(updatedOrder)
-                console.log(emailRes);
-                return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
+                if (!admin) {
+                    const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
+                    await sendEmail(updatedOrder)
+                    return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
+                }
+                return res.json({ success: true, message: "Payment Successful", status: 200, orderId: order._id });
+
             } else {
                 return res.json({ success: false, message: "No Order ID. Please Reload" });
             }
@@ -230,7 +232,7 @@ const confirmPayment = async (req, res) => {
                     return res.json({ success: true, message: "Stk Push Sent after retry", status: 202 });
                 }
             } else {
-                return res.json({ success: false, message: response.data.ResultDesc || "Payment couldn't be verified", status: response.data.ResultCode });
+                return res.json({ success: false, message: response.data.ResultDesc || "Payment couldn't be verified", status: response.data.ResultCode || 302, orderId: order._id });
             }
         }
     } catch (error) {
