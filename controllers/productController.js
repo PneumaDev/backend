@@ -148,14 +148,30 @@ const removeProduct = async (req, res) => {
 // <-------- Function to get single product info --------->
 const singleProductInfo = async (req, res) => {
     try {
-        const { productId } = req.body
-        const product = await productModel.findById(productId)
-        res.json({ success: true, product })
+        const { productId } = req.body;
+
+        // Fetch the requested product
+        const product = await productModel.findById(productId);
+
+        if (!product) {
+            return res.json({ success: false, message: "Product not found" });
+        }
+
+        // Fetch related products, selecting only `name`, `description`, and `price`
+        const relatedProducts = await productModel.find({
+            subCategory: product.subCategory,
+            category: product.category,
+            _id: { $ne: productId }
+        })
+            .select("name description price image")
+            .limit(5);
+
+        res.json({ success: true, product, relatedProducts });
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 export { removeProduct, singleProductInfo, listProduct, addProduct, updateProduct }
