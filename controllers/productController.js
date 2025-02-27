@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import productModel from "../models/productModel.js";
+import { ObjectId } from "mongodb";
 
 // <-------- Function to add product --------->
 const addProduct = async (req, res) => {
@@ -150,28 +151,46 @@ const singleProductInfo = async (req, res) => {
     try {
         const { productId } = req.body;
 
-        // Fetch the requested product
-        const product = await productModel.findById(productId);
+        const result = await productModel.aggregate([
+            // Step 1: Match the requested product by ID
+            { $match: { _id: ObjectId.createFromHexString(productId) } },
 
-        if (!product) {
+            // Step 2: Lookup related products based on subCategory and category, excluding the current product
+            {
+                $lookup: {
+                    from: "products", // The MongoDB collection name
+                    let: { productSubCategory: "$subCategory", productCategory: "$category", productId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$subCategory", "$$productSubCategory"] },
+                                        { $eq: ["$category", "$$productCategory"] },
+                                        { $ne: ["$_id", "$$productId"] } // Exclude the current product
+                                    ]
+                                }
+                            }
+                        },
+                        { $project: { name: 1, description: 1, price: 1, image: 1 } }, 
+                        { $limit: 5 } // Limit results to 5
+                    ],
+                    as: "relatedProducts"
+                }
+            }
+        ]);
+
+        if (result.length === 0) {
             return res.json({ success: false, message: "Product not found" });
         }
 
-        // Fetch related products, selecting only `name`, `description`, and `price`
-        const relatedProducts = await productModel.find({
-            subCategory: product.subCategory,
-            category: product.category,
-            _id: { $ne: productId }
-        })
-            .select("name description price image")
-            .limit(5);
-
-        res.json({ success: true, product, relatedProducts });
+        res.json({ success: true, product: result[0], relatedProducts: result[0].relatedProducts });
 
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
+
 };
 
 export { removeProduct, singleProductInfo, listProduct, addProduct, updateProduct }

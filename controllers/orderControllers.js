@@ -4,6 +4,7 @@ import { Mpesa } from "daraja.js"
 import { ObjectId } from "mongodb";
 import userModel from './../models/userModel.js';
 import { sendEmail } from "../config/email.js";
+import updateOrder from "../config/updateProduct.js";
 
 
 const app = new Mpesa({
@@ -200,6 +201,7 @@ const confirmPayment = async (req, res) => {
                 if (!admin) {
                     const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
                     await sendEmail(updatedOrder)
+                    await updateOrder(updatedOrder.items)
                     return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
                 }
                 return res.json({ success: true, message: "Payment Successful", status: 200, orderId: order._id });
