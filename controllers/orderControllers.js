@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import userModel from './../models/userModel.js';
 import { sendEmail } from "../config/email.js";
 import updateOrder from "../config/updateProduct.js";
+import { sendOrderNotification } from "../config/services/utils.js";
 
 
 const app = new Mpesa({
@@ -41,7 +42,7 @@ const userOrders = async (req, res) => {
     try {
         const { userId } = req.body;
 
-        const orders = await orderModel.find({ userId }).sort({ updatedAt: 1 });
+        const orders = await orderModel.find({ userId }).sort({ createdAt: 1 });
 
         res.json({ success: true, orders })
 
@@ -200,8 +201,9 @@ const confirmPayment = async (req, res) => {
             if (order._id) {
                 if (!admin) {
                     const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
-                    await sendEmail(updatedOrder)
-                    await updateOrder(updatedOrder.items)
+                    sendEmail(updatedOrder)
+                    updateOrder(updatedOrder.items)
+                    sendOrderNotification(updatedOrder)
                     return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
                 }
                 return res.json({ success: true, message: "Payment Successful", status: 200, orderId: order._id });
@@ -266,5 +268,7 @@ const singleOrderInfo = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+
+
 
 export { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo }
