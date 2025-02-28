@@ -14,8 +14,14 @@ export const adminNotifications = (req, res) => {
     // Send an initial message to confirm connection
     res.write("data: " + JSON.stringify({ message: "Connected to notifications" }) + "\n\n");
 
+    // Keep the connection alive
+    const keepAliveInterval = setInterval(() => {
+        res.write("event: ping\ndata: {}\n\n");
+    }, 500); // Every 25 seconds
+
     // Remove admin when they disconnect
     req.on("close", () => {
+        clearInterval(keepAliveInterval);
         adminClients.splice(adminClients.indexOf(res), 1);
         res.end();
     });
