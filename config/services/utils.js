@@ -2,7 +2,7 @@ const adminClients = []; // Stores connected admin clients
 
 // SSE Endpoint: Admin listens for order notifications
 export const adminNotifications = (req, res) => {
-    res.setHeader("Content-Type", "text/event-stream"); // ✅ Ensure correct SSE MIME type
+    res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
