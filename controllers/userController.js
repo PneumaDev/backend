@@ -47,7 +47,7 @@ const loginUser = async (req, res) => {
 
                 const token = createToken(user._id)
 
-                res.json({ success: true, message: "User Created", token })
+                res.json({ success: true, message: "Signed In", token })
             }
         }
 
