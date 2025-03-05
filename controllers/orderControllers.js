@@ -41,7 +41,7 @@ const userOrders = async (req, res) => {
     try {
         const { userId } = req.body;
 
-        const orders = await orderModel.find({ userId }).sort({ createdAt: 1 });
+        const orders = await orderModel.find({ userId }).sort({ updatedAt: -1 });;
 
         res.json({ success: true, orders })
 
