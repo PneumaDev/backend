@@ -199,11 +199,30 @@ const confirmPayment = async (req, res) => {
             // Proceed to get the order if there's an orderId
             if (order._id) {
                 if (!admin) {
-                    const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
-                    await sendEmail(updatedOrder)
+                    const updatedOrder = await orderModel.findByIdAndUpdate(
+                        order._id,
+                        { payment: true, status: "Confirmed" },
+                        { new: true }
+                    );
+
+                    // Fire and forget: send email without awaiting
+                    sendEmail(updatedOrder)
+                        .then(() => console.log("Email sent successfully"))
+                        .catch(err => console.error("Error sending email:", err));
+
+                    // Fire and forget: update order items without awaiting
                     updateOrder(updatedOrder.items)
-                    return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
+                        .then(() => console.log("Order items updated successfully"))
+                        .catch(err => console.error("Error updating order items:", err));
+
+                    return res.json({
+                        success: true,
+                        message: "Payment Successful",
+                        updatedOrder,
+                        status: 200
+                    });
                 }
+
                 return res.json({ success: true, message: "Payment Successful", status: 200, orderId: order._id });
 
             } else {
