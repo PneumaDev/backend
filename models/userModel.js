@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema(
         ],
         isActive: { type: Boolean, default: true },
         isVerified: { type: Boolean, default: false },
+        fcmToken: { type: Array, default: [] },
         resetToken: { type: String },
         resetTokenExpiry: { type: Date },
         socialLogin: {
