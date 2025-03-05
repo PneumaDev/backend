@@ -5,7 +5,6 @@ import { ObjectId } from "mongodb";
 import userModel from './../models/userModel.js';
 import { sendEmail } from "../config/email.js";
 import updateOrder from "../config/updateProduct.js";
-import { sendOrderNotification } from "../config/services/utils.js";
 
 
 const app = new Mpesa({
@@ -203,7 +202,6 @@ const confirmPayment = async (req, res) => {
                     const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
                     sendEmail(updatedOrder)
                     updateOrder(updatedOrder.items)
-                    sendOrderNotification(updatedOrder)
                     return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
                 }
                 return res.json({ success: true, message: "Payment Successful", status: 200, orderId: order._id });
