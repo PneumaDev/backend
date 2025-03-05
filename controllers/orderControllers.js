@@ -200,7 +200,7 @@ const confirmPayment = async (req, res) => {
             if (order._id) {
                 if (!admin) {
                     const updatedOrder = await orderModel.findByIdAndUpdate(order._id, { payment: true, status: "Confirmed" }, { new: true });
-                    sendEmail(updatedOrder)
+                    await sendEmail(updatedOrder)
                     updateOrder(updatedOrder.items)
                     return res.json({ success: true, message: "Payment Successful", updatedOrder, status: 200 });
                 }
