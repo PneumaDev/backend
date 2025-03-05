@@ -1,19 +1,19 @@
 import nodemailer from "nodemailer";
 // Create a transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
+   service: 'gmail',
+   auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+   },
 });
 // Controller function to send email
 export const sendEmail = async (order) => {
-  const mailOptions = {
-    from: `"Eridanus Mall" <info@eridanus.com>`,
-    to: order.address.email,
-    subject: `Order Confirmation - Eridanus Mall`,
-    html: `
+   const mailOptions = {
+      from: `"Eridanus Mall" <info@eridanus.com>`,
+      to: order.address.email,
+      subject: `Order Confirmation - Eridanus Mall`,
+      html: `
 <!DOCTYPE html>
 <html>
    <head>
@@ -128,13 +128,13 @@ export const sendEmail = async (order) => {
                <!-- Horizontal Line Below Order Summary -->
                <hr style="border: none; border-top: 2px solid #e2e8f0; margin-bottom: 16px;">
                ${order.items
-        .flatMap((item) =>
-          item.sizes.map((size) => {
-            if (!item.image || item.image.length === 0) {
-              console.warn(`No image found for item: ${item.name}`);
-              return "";
-            }
-            return `
+            .flatMap((item) =>
+               item.sizes.map((size) => {
+                  if (!item.image || item.image.length === 0) {
+                     console.warn(`No image found for item: ${item.name}`);
+                     return "";
+                  }
+                  return `
                <div style="
                   display: flex; 
                   align-items: center; 
@@ -179,9 +179,9 @@ export const sendEmail = async (order) => {
                   </div>
                </div>
                `;
-          })
-        )
-        .join("")}
+               })
+            )
+            .join("")}
             </div>
             <!-- Totals Section -->
             <div class="totals" style="margin-top: 20px; padding: 16px; background-color: #f9fafb; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
@@ -227,12 +227,13 @@ export const sendEmail = async (order) => {
    </body>
 </html>
 `
-  };
-  try {
-    await transporter.sendMail(mailOptions);
-    return { message: 'Email sent successfully', status: 200 };
-  } catch (error) {
-    console.error('Error sending email:', error);
-    return { message: 'Failed to send email', status: 301 };
-  }
+   };
+   try {
+      await transporter.sendMail(mailOptions);
+      console.log({ message: 'Email sent successfully', status: 200 });
+      return { message: 'Email sent successfully', status: 200 };
+   } catch (error) {
+      console.error('Error sending email:', error);
+      return { message: 'Failed to send email', status: 301 };
+   }
 };
