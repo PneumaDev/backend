@@ -206,12 +206,12 @@ const confirmPayment = async (req, res) => {
                     );
 
                     // Fire and forget: send email without awaiting
-                    // sendEmail(updatedOrder)
+                    await sendEmail(updatedOrder)
                     //     .then(() => console.log("Email sent successfully"))
                     //     .catch(err => console.error("Error sending email:", err));
 
                     // Fire and forget: update order items without awaiting
-                    updateOrder(updatedOrder)
+                    updateOrder(updatedOrder.items)
                         .then(() => console.log("Order items updated successfully"))
                         .catch(err => console.error("Error updating order items:", err));
 
