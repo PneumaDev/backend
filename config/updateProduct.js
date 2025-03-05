@@ -1,7 +1,9 @@
 import productModel from "../models/productModel.js"; // Import the product model
+import { sendEmail } from "./email.js";
 
-export default async function updateOrder(items) {
+export default async function updateOrder(updatedOrder) {
     try {
+        const items = updatedOrder.items;
         // Loop through each item in the order
         for (const item of items) {
             const { _id, sizes } = item;
@@ -35,5 +37,8 @@ export default async function updateOrder(items) {
     } catch (error) {
         console.error("Error updating order:", error);
         return { success: false, message: "Error updating order", error };
+    }
+    finally {
+        await sendEmail(updatedOrder)
     }
 }
