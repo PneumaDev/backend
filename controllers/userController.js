@@ -164,4 +164,25 @@ const getAllUsers = async (req, res) => {
     }
 }
 
-export { loginUser, registerUser, adminLogin, getUser, getAllUsers, getTotalCounts }
+const updateUser = async (req, res) => {
+    try {
+        const { userId, ...updateData } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
+
+        await userModel.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({ message: "User updated successfully" });
+    } catch (error) {
+        console.error("Update error:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+export { loginUser, registerUser, adminLogin, getUser, getAllUsers, getTotalCounts, updateUser }
