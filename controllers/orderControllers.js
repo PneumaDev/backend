@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import userModel from './../models/userModel.js';
 import { sendEmail } from "../config/email.js";
 import updateOrder from "../config/updateProduct.js";
+import productModel from "../models/productModel.js";
 
 
 const app = new Mpesa({
@@ -274,6 +275,38 @@ const allOrders = async (req, res) => {
     }
 };
 
+const getTotalCounts = async (req, res) => {
+    try {
+        const result = await Promise.all([
+            userModel.aggregate([{ $count: "total" }]),
+            productModel.aggregate([{ $count: "total" }]),
+            orderModel.aggregate([{ $count: "total" }]),
+            orderModel.aggregate([
+                { $match: { payment: true } },
+                { $group: { _id: null, totalRevenue: { $sum: "$amount" } } }
+            ]),
+            orderModel.aggregate([
+                { $group: { _id: null, totalRevenue: { $sum: "$amount" } } }
+            ])
+        ]);
+
+        // Extract values with default 0 if empty
+        const counts = [
+            { category: "users", total: result[0][0]?.total || 0 },
+            { category: "products", total: result[1][0]?.total || 0 },
+            { category: "orders", total: result[2][0]?.total || 0 },
+            { category: "actualRevenue", total: result[3][0]?.totalRevenue || 0 },
+            { category: "potentialRevenue", total: result[4][0]?.totalRevenue || 0 }
+        ];
+
+        res.json({ success: true, counts });
+    } catch (error) {
+        console.error("Error fetching document counts:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+
 const singleOrderInfo = async (req, res) => {
     try {
         const { orderId } = req.body
@@ -288,4 +321,4 @@ const singleOrderInfo = async (req, res) => {
 
 
 
-export { userOrders, allOrders, updateStatus, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo }
+export { userOrders, allOrders, updateStatus, getTotalCounts, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo }
