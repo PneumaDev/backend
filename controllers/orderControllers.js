@@ -6,6 +6,7 @@ import userModel from './../models/userModel.js';
 import { sendEmail } from "../config/email.js";
 import updateOrder from "../config/updateProduct.js";
 import productModel from "../models/productModel.js";
+import { notifications } from "../config/firebase/firebase.js";
 
 
 const app = new Mpesa({
@@ -54,18 +55,6 @@ const userOrders = async (req, res) => {
 }
 
 // <--------------User Order Data for Frontend-------------->
-const updateStatus = async (req, res) => {
-    try {
-        const { orderId, status } = req.body;
-        await orderModel.findByIdAndUpdate(orderId, { status })
-        res.json({ success: true, message: "Status Updated" })
-    } catch (error) {
-        console.log(error.message);
-        res.json({ success: false, message: error.message })
-    }
-
-}
-
 // <--------------Cancel Order-----------------> 
 const cancelOrder = async (req, res) => {
     try {
@@ -192,30 +181,42 @@ const mpesaWebhook = async (req, res) => {
 // <--------------Complete Mpesa Orders Payment-------------->
 const confirmPayment = async (req, res) => {
     try {
-        const { retryPurchase, order, admin } = req.body;
+        const { retryPurchase, order, admin, fcmTokens } = req.body;
+
+        console.log(fcmTokens);
 
         const response = await verifyPayment(order.checkoutRequestId);
 
         if (response.data.ResultCode === "0" && response.isOkay()) {
             // Proceed to get the order if there's an orderId
             if (order._id) {
+                // Check if the current user is not an admin
                 if (!admin) {
+                    // Update the order by setting the payment status to true and changing the status to "Confirmed"
+                    // The option { new: true } ensures that the updated order is returned after the update.
                     const updatedOrder = await orderModel.findByIdAndUpdate(
                         order._id,
                         { payment: true, status: "Confirmed" },
                         { new: true }
                     );
 
-                    // Fire and forget: send email without awaiting
-                    await sendEmail(updatedOrder)
-                    //     .then(() => console.log("Email sent successfully"))
-                    //     .catch(err => console.error("Error sending email:", err));
+                    // Send an email notification to the user with the updated order details.
+                    await sendEmail(updatedOrder);
 
-                    // Fire and forget: update order items without awaiting
+                    await notifications({
+                        token: fcmTokens, title: `Hello, ${order.address.firstName} ${order.address.lastName}`,
+                        body: `Your order has been confirmed successfully. Thank you for shopping with us`,
+                        image: order.items[0].image[0]
+                    });
+
+                    // Fire and forget: update order items without awaiting the promise.
+                    // This ensures that the order update doesn't block the response.
                     updateOrder(updatedOrder.items)
                         .then(() => console.log("Order items updated successfully"))
                         .catch(err => console.error("Error updating order items:", err));
 
+                    // Return a JSON response indicating that the payment was successful,
+                    // including the updated order details and a status code.
                     return res.json({
                         success: true,
                         message: "Payment Successful",
@@ -224,10 +225,19 @@ const confirmPayment = async (req, res) => {
                     });
                 }
 
-                return res.json({ success: true, message: "Payment Successful", status: 200, orderId: order._id });
-
+                // If the user is an admin, just return a success message along with the orderId.
+                return res.json({
+                    success: true,
+                    message: "Payment Successful",
+                    status: 200,
+                    orderId: order._id
+                });
             } else {
-                return res.json({ success: false, message: "No Order ID. Please Reload" });
+                // If there's no orderId, return a JSON response with an error message prompting the user to reload.
+                return res.json({
+                    success: false,
+                    message: "No Order ID. Please Reload"
+                });
             }
         } else {
             // Retry Purchase if order payment still pending.
@@ -267,7 +277,19 @@ const confirmPayment = async (req, res) => {
 // <--------------Get all orders for Admin Panel-------------->
 const allOrders = async (req, res) => {
     try {
-        const orders = await orderModel.find({}).sort({ createdAt: -1 });
+        const orders = await orderModel.aggregate([
+            {
+                $project: {
+                    "address.firstName": 1,
+                    "address.lastName": 1,
+                    amount: 1,
+                    status: 1,
+                    name: { $arrayElemAt: ["$items.name", 0] }
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
         res.json({ success: true, orders });
     } catch (error) {
         console.log(error.message);
@@ -306,7 +328,6 @@ const getTotalCounts = async (req, res) => {
     }
 };
 
-
 const singleOrderInfo = async (req, res) => {
     try {
         const { orderId } = req.body
@@ -319,6 +340,16 @@ const singleOrderInfo = async (req, res) => {
     }
 }
 
+const updateStatus = async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        await orderModel.findByIdAndUpdate(orderId, { status })
+        res.json({ success: true, message: "Status Updated" })
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message })
+    }
 
+}
 
 export { userOrders, allOrders, updateStatus, getTotalCounts, placeOrderMpesa, mpesaWebhook, cancelOrder, confirmPayment, singleOrderInfo }
