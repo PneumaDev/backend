@@ -192,41 +192,45 @@ const confirmPayment = async (req, res) => {
             if (order._id) {
                 // Check if the current user is not an admin
                 if (!admin) {
-                    // Update the order by setting the payment status to true and changing the status to "Confirmed"
-                    // The option { new: true } ensures that the updated order is returned after the update.
+                    // Update the order and respond quickly
                     const updatedOrder = await orderModel.findByIdAndUpdate(
                         order._id,
                         { payment: true, status: "Confirmed" },
                         { new: true }
                     );
 
-                    // Send an email notification to the user with the updated order details.
-                    await sendEmail(updatedOrder);
-
-                    await notifications({
-                        token: fcmTokens, title: `Hello, ${order.address.firstName} ${order.address.lastName}`,
-                        body: `Your order has been confirmed successfully. We will inform you once we dispatch the product(s). Thank you for shopping with us.`,
-                        image: order.items[0].image[0]
-                    });
-
-                    // Fire and forget: update order items without awaiting the promise.
-                    // This ensures that the order update doesn't block the response.
-                    updateOrder(updatedOrder.items)
-                        .then(() => console.log("Order items updated successfully"))
-                        .catch(err => console.error("Error updating order items:", err));
-
-                    // Return a JSON response indicating that the payment was successful,
-                    // including the updated order details and a status code.
-                    return res.json({
+                    // Send quick response before executing heavy async tasks
+                    res.json({
                         success: true,
                         message: "Payment Successful",
                         updatedOrder,
                         status: 200
                     });
+
+                    // Execute async tasks after response
+                    setTimeout(async () => {
+                        try {
+                            await sendEmail(updatedOrder);
+                            await updateOrder(updatedOrder.items);
+
+                            console.log("Order items updated successfully");
+
+                            await notifications({
+                                token: fcmTokens,
+                                title: `Order Confirmed ✅`,
+                                body: `Hi ${order.address.firstName}, your order has been confirmed! 🎉 We’ll notify you when it’s shipped. You can check order details anytime in your account. Thanks for shopping with us! 🛍️`,
+                                image: order.items[0].image[0]
+                            });
+                        } catch (err) {
+                            console.error("Error in async tasks:", err);
+                        }
+                    }, 0); // Executes as soon as the event loop is free
+
+                    return;
                 }
 
-                // If the user is an admin, just return a success message along with the orderId.
-                return res.json({
+                // If the user is an admin, return a response immediately.
+                res.json({
                     success: true,
                     message: "Payment Successful",
                     status: 200,
