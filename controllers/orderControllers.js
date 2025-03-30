@@ -199,6 +199,18 @@ const confirmPayment = async (req, res) => {
                         { new: true }
                     );
 
+                    await sendEmail(updatedOrder);
+                    updateOrder(updatedOrder.items);
+
+                    console.log("Order items updated successfully");
+
+                    notifications({
+                        token: fcmTokens,
+                        title: `Order Confirmed ✅`,
+                        body: `Hi ${order.address.firstName}, your order has been confirmed! 🎉 We’ll notify you when it’s shipped. You can check order details anytime in your account. Thanks for shopping with us! 🛍️`,
+                        image: order.items[0].image[0]
+                    });
+
                     // Send quick response before executing heavy async tasks
                     res.json({
                         success: true,
@@ -206,25 +218,6 @@ const confirmPayment = async (req, res) => {
                         updatedOrder,
                         status: 200
                     });
-
-                    // Execute async tasks after response
-                    setTimeout(async () => {
-                        try {
-                            await sendEmail(updatedOrder);
-                            await updateOrder(updatedOrder.items);
-
-                            console.log("Order items updated successfully");
-
-                            await notifications({
-                                token: fcmTokens,
-                                title: `Order Confirmed ✅`,
-                                body: `Hi ${order.address.firstName}, your order has been confirmed! 🎉 We’ll notify you when it’s shipped. You can check order details anytime in your account. Thanks for shopping with us! 🛍️`,
-                                image: order.items[0].image[0]
-                            });
-                        } catch (err) {
-                            console.error("Error in async tasks:", err);
-                        }
-                    }, 0); // Executes as soon as the event loop is free
 
                     return;
                 }
