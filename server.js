@@ -14,6 +14,13 @@ const app = express()
 const port = process.env.PORT || 4000;
 connectDb()
 connectCloudinary()
+// notifications({
+//     title: "Hello",
+//     body: "This is a test",
+//     image: "https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg",
+//     token: ["dFkAH3G2VV7URzzDcZcut5:APA91bHeDlivdrLG-PAFcaPgodlqHf1Kzr6ZUawHXIVPZZSy9HifLWHpWFZZvL1M71qBc2apueBZJ2qv_vi5qK6rCQ-LSGVJJbzz5rmgLvoseZE8CESA5ac"]
+// });
+
 
 // Middlewares
 app.use(express.json())
