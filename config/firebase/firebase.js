@@ -38,6 +38,7 @@ console.log("🔥 Firestore connected successfully!");
  * @param {string} contents.title - The title of the notification.
  * @param {string} contents.body - The body text of the notification.
  * @param {string} contents.image - The image of the notification.
+ * @param {string} contents.link - The link to redirect to on clicking the notification.
  * @returns {Promise<Object>} A promise resolving to an object indicating success or failure.
  *
  * @example
@@ -45,13 +46,14 @@ console.log("🔥 Firestore connected successfully!");
  *     token: "device_fcm_token",
  *     title: "New Message",
  *     body: "You have a new notification!"
+ *     link: "https://eridanusmall.vercel.app/"
  *     image: "https://example.com/image.jpg"
  * });
  * console.log(result);
  */
 export const notifications = async (contents) => {
     try {
-        const { token, title, body, image } = contents;
+        const { token, title, body, image, link } = contents;
 
         // Validate required fields
         if (!token || !title || !body) {
@@ -63,7 +65,12 @@ export const notifications = async (contents) => {
 
         const message = {
             notification: { title, body, image },
-            tokens, // Use 'tokens' instead of 'token'
+            tokens,
+            webpush: {
+                fcmOptions: {
+                    link: link || "https://eridanusmall.vercel.app"
+                }
+            }
         };
 
         // Send notification via FCM for multiple tokens

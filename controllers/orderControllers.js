@@ -205,7 +205,7 @@ const confirmPayment = async (req, res) => {
 
                     await notifications({
                         token: fcmTokens, title: `Hello, ${order.address.firstName} ${order.address.lastName}`,
-                        body: `Your order has been confirmed successfully. Thank you for shopping with us`,
+                        body: `Your order has been confirmed successfully. We will inform you once we dispatch the product(s). Thank you for shopping with us.`,
                         image: order.items[0].image[0]
                     });
 
