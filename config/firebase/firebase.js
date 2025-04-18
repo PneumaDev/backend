@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import { getFirestore } from 'firebase-admin/firestore';
+import { onRequest } from "firebase-functions/v2/https";
 
 
 // Initialize Firebase Admin SDK
@@ -51,13 +52,13 @@ console.log("🔥 Firestore connected successfully!");
  * });
  * console.log(result);
  */
-export const notifications = async (contents) => {
+export const sendNotification = onRequest(async (req, res) => {
     try {
-        const { token, title, body, image, link } = contents;
+        const { token, title, body, image, link } = req.body;
 
         // Validate required fields
         if (!token || !title || !body) {
-            return { success: false, message: "Token, title, and body are required" };
+            return res.status(400).json({ success: false, message: "Token, title, and body are required" });
         }
 
         // Ensure token is an array
@@ -67,20 +68,19 @@ export const notifications = async (contents) => {
             notification: { title, body, image },
             tokens,
             webpush: {
-                fcmOptions: {
-                    link: link || "https://eridanusmall.vercel.app"
-                }
+                fcmOptions: { link: link || "https://eridanusmall.vercel.app" }
             }
         };
 
-        // Send notification via FCM for multiple tokens
+        // Send notification via FCM
         const response = await admin.messaging().sendEachForMulticast(message);
 
-        return { success: true, response };
+        return res.status(200).json({ success: true, response });
     } catch (error) {
-        return { success: false, error: error.message };
+        console.error("Notification error:", error);
+        return res.status(500).json({ success: false, error: error.message });
     }
-};
+});
 
 export const subscribeToTopic = async (req, res) => {
     try {
