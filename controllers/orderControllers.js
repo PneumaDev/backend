@@ -6,7 +6,6 @@ import userModel from './../models/userModel.js';
 import { sendEmail } from "../config/email.js";
 import updateOrder from "../config/updateProduct.js";
 import productModel from "../models/productModel.js";
-import { notifications } from "../config/firebase/firebase.js";
 
 
 const app = new Mpesa({
