@@ -42,16 +42,37 @@ const userOrders = async (req, res) => {
     try {
         const { userId } = req.body;
 
-        const orders = await orderModel.find({ userId }).sort({ updatedAt: 1 });;
+        const orders = await orderModel.find(
+            { userId },
+            {
+                "items._id": 1,
+                "items.name": 1,
+                "items.description": 1,
+                "items.price": 1,
+                "items.image": { $slice: 1 },
+                "items.sizes": 1,
+                checkoutRequestId: 1,
+                amount: 1,
+                shippingMethod: 1,
+                address: 1,
+                status: 1,
+                paymentMethod: 1,
+                payment: 1,
+                date: 1,
+                reviewed: 1,
+                createdAt: 1,
+                updatedAt: 1
+            }
+        ).sort({ updatedAt: 1 }).limit(10);
 
-        res.json({ success: true, orders })
+        res.json({ success: true, orders });
 
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
-
 }
+
 
 // <--------------User Order Data for Frontend-------------->
 // <--------------Cancel Order-----------------> 
